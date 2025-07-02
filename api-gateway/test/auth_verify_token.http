@@ -1,0 +1,13 @@
+### Verify token (success)
+
+@admin_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkNmU5MmQyYS1lOGJhLTQ5NjctODFiZS0zNmZjODFmNDAwZjAiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzUxNTc0ODAzfQ.5MZQ2A-OLsP3AE7C4Ai_TmoqfjXLALOln0H12rnwSvE
+
+POST http://localhost:4000/auth/verify-token
+Authorization: Bearer {{admin_token}}
+
+### Verify token (fail: missing token)
+POST http://localhost:4000/auth/verify-token
+
+### Verify token (fail: invalid token)
+POST http://localhost:4000/auth/verify-token
+Authorization: Bearer invalidtoken 

@@ -1,0 +1,22 @@
+### List users as ADMIN (success)
+
+@admin_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkNmU5MmQyYS1lOGJhLTQ5NjctODFiZS0zNmZjODFmNDAwZjAiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzUxNTc0ODAzfQ.5MZQ2A-OLsP3AE7C4Ai_TmoqfjXLALOln0H12rnwSvE
+@encadrant_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwZjI3MDlmMy02MjI0LTRlMWQtYWIwZS05NTgwNWJjZTk4NDQiLCJlbWFpbCI6ImVuY2FkcmFudEBleGFtcGxlLmNvbSIsInJvbGUiOiJlbmNhZHJhbnQiLCJleHAiOjE3NTE1NzQ4MzZ9.0EFut7hMZrmlZUG-HtXZ_6TQGROGF6KWQC6Nxg_BDkQ
+@etudiant_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3YTM3MTk1Ny1hZWE3LTRlMTQtOTllOS1hNzIyMTBmMWNhNGYiLCJlbWFpbCI6ImV0dWRpYW50MUBleGFtcGxlLmNvbSIsInJvbGUiOiJldHVkaWFudCIsImV4cCI6MTc1MTU3NDg4Mn0.OMtl5Re05wVRvjm9HbJqA3HIqs_0a--2lUUanpHkVqw
+@incube_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZmEwOGY5MC0xZWJkLTRlNmItODdlMS0zNzg4YzkzNDkzMTciLCJlbWFpbCI6ImZyaWhhb3VpbW9oYW1lZEBnbWFpbC5jb20iLCJyb2xlIjoiaW5jdWJlIiwiZXhwIjoxNzUxNTc1ODU5fQ.s-75hoS8PfM-cHrJQAe_1MedDFy_3aWkm9IZOFP1iUc
+
+
+GET http://localhost:4000/auth/users
+Authorization: Bearer {{admin_token}}
+
+### List users as ENCADRANT (success: only own users)
+GET http://localhost:4000/auth/users
+Authorization: Bearer {{encadrant_token}}
+
+### List users as ETUDIANT (fail: forbidden)
+GET http://localhost:4000/auth/users
+Authorization: Bearer {{etudiant_token}}
+
+### List users as INCUBE (fail: forbidden)
+GET http://localhost:4000/auth/users
+Authorization: Bearer {{incube_token}} 

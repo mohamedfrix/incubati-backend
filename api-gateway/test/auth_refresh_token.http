@@ -1,0 +1,39 @@
+### Refresh token (success)
+# 1. Login to get a refresh token
+
+@refresh_token = 
+@expired_refresh_token =
+
+POST http://localhost:4000/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "adminpassword"
+}
+
+### Use the refresh token to get new tokens
+# Replace {{refresh_token}} with the value from the previous response
+POST http://localhost:4000/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refresh_token": "{{refresh_token}}"
+}
+
+### Refresh token (fail: invalid token)
+POST http://localhost:4000/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refresh_token": "invalidtoken"
+}
+
+### Refresh token (fail: expired token)
+# Use an expired refresh token if available
+POST http://localhost:4000/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refresh_token": "{{expired_refresh_token}}"
+} 
