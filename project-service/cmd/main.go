@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/moulaybdl/incubAT/project_service/internal/adapters/repository"
 	"github.com/moulaybdl/incubAT/project_service/internal/config"
 	"github.com/moulaybdl/incubAT/project_service/internal/core/ports"
 	"github.com/moulaybdl/incubAT/project_service/internal/core/services"
@@ -31,6 +32,13 @@ func main() {
 
 
     // open a connection to the database:
+    logger.Logger.Info("Connecting to the database", "dsn", cfg.DSN)
+    _, err = repository.OpenDB(cfg.DSN)
+    if err != nil {
+    logger.Logger.Error(err.Error())
+    return
+  }
+  logger.Logger.Info("Connection to database established !")
 
     // start the server:
     // initialize the Rest server
