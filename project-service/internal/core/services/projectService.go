@@ -36,3 +36,14 @@ func (p *ProjectService) GetProjectByID(projectID string) (*domain.Project, erro
 	}
 	return project, nil
 }
+
+
+func (p *ProjectService) UpdateProject(project *domain.Project) (*domain.Project, error) {
+	// Call the repository method to update the project
+	updatedProject, err := p.ProjectRepo.UpdateProject(project)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedProject, nil
+}

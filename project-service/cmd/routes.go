@@ -27,6 +27,8 @@ func InitRoutes(db *repository.DB) *httprouter.Router {
 
 	router.HandlerFunc(http.MethodPost,  "/api/projects/", projectHandler.CreateProject)
 	router.HandlerFunc(http.MethodGet, "/api/projects/:project_id/", projectHandler.GetProjectByID)
+	router.HandlerFunc(http.MethodPut, "/api/projects/:project_id/", projectHandler.UpdateProject)
+
 
 	return router
 }
