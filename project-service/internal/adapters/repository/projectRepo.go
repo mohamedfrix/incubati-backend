@@ -10,8 +10,7 @@ import (
 )
 
 func (r *DB) CreateProject(project *domain.Project) (*domain.Project, error) {
-	fmt.Println(project.StartDate, project.EndDate)
-	query := `
+		query := `
 		INSERT INTO projects (
 			id, title, description, domain, status, start_date, end_date,
 			progress_percentage, isPublic, owner_id, created_by, updated_by

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/moulaybdl/incubAT/project_service/pkg/utils"
 )
 
 type ProjectMember struct {
@@ -19,4 +20,25 @@ type ProjectMember struct {
 	CanViewReports bool       `json:"can_view_reports" db:"can_view_reports"`
 	CreatedAt      time.Time  `json:"created_at" db:"created_at"`
 	UpdatedAt      time.Time  `json:"updated_at" db:"updated_at"`
+}
+
+
+type ProjectMemberValidator struct {
+	 	Errors []map[string]string
+}
+
+func (p *ProjectMemberValidator) CheckValid() bool {
+	return len(p.Errors) == 0
+}
+
+
+func (p *ProjectMemberValidator) Validate(pm *ProjectMember) {
+	// check if value of role is valid
+	valid  := []string{"manager", "lead", "developer", "designer", "analyst", "tester", "stakeholder"}
+	if ok := utils.CheckContains(valid, pm.Role); !ok {
+		p.Errors = append(p.Errors, map[string]string{"role": "not a valid value"})
+		return
+	}
+
+	
 }
