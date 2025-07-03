@@ -33,7 +33,7 @@ func main() {
 
     // open a connection to the database:
     logger.Logger.Info("Connecting to the database", "dsn", cfg.DSN)
-    _, err = repository.OpenDB(cfg.DSN)
+    db_connection, err := repository.OpenDB(cfg.DSN)
     if err != nil {
     logger.Logger.Error(err.Error())
     return
@@ -45,7 +45,7 @@ func main() {
     logger.Logger.Info("Initializing the REST server", "port", cfg.REST_Port)
     restServer := services.NewRESTServer(
         fmt.Sprintf(":%s", cfg.REST_Port),
-        InitRoutes(), // You can pass your routes    
+        InitRoutes(db_connection), // You can pass your routes    
         slog.NewLogLogger(logger.Logger.Handler(), slog.LevelInfo),
     )
     logger.Logger.Info("REST server initialized successfully")

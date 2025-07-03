@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/moulaybdl/incubAT/project_service/pkg/utils"
 )
 
 type Project struct {
@@ -22,3 +23,31 @@ type Project struct {
 	CreatedBy          uuid.UUID `json:"created_by" db:"created_by"`
 	UpdatedBy          *uuid.UUID `json:"updated_by" db:"updated_by"`
 }
+
+type ProjectValidator struct {
+ 	Errors []map[string]string
+}
+
+func (p *ProjectValidator) CheckValid() bool {
+	return len(p.Errors) == 0
+}
+
+
+
+func (p *ProjectValidator) Validate(pr *Project) {
+	// check status values
+	valid := []string {"planning", "active", "on_hold", "completed", "cancelled"}
+	if ok := utils.CheckContains(valid, pr.Status); !ok {
+		p.Errors = append(p.Errors, map[string]string{"status": "not a valid value"})
+		return 
+	}
+
+	// check percentage:
+	if pr.ProgressPercentage < 0 || pr.ProgressPercentage > 100 {
+		p.Errors = append(p.Errors, map[string]string{"percentage": "invalid value"})
+		return
+	}
+
+}
+
+

@@ -3,10 +3,10 @@
 -- Created: 2025-07-02
 
 -- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Enable case-insensitive text extension
-CREATE EXTENSION IF NOT EXISTS "citext";
+-- CREATE EXTENSION IF NOT EXISTS "citext";
 
 -- Create custom types for enums
 CREATE TYPE project_status AS ENUM ('planning', 'active', 'on_hold', 'completed', 'cancelled');
