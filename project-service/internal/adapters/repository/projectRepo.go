@@ -124,24 +124,21 @@ func (r *DB) UpdateProject(project *domain.Project) (*domain.Project, error) {
 	return &updatedProject, nil
 }
 
-func (r *DB) DeleteProject(projectID uuid.UUID) error {
-	query := `DELETE FROM projects WHERE id = $1`
-
-	result, err := r.db.Exec(query, projectID)
+func (r *DB) DeleteProject(projectID uuid.UUID) (*string , error) {
+	// Use DELETE with RETURNING to get project title in one query
+	query := `DELETE FROM projects WHERE id = $1 RETURNING title`
+	
+	var projectTitle string
+	err := r.db.QueryRow(query, projectID).Scan(&projectTitle)
 	if err != nil {
-		return fmt.Errorf("failed to delete project: %w", err)
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("project with ID %s not found", projectID)
+		}
+		return nil, fmt.Errorf("failed to delete project: %w", err)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
-	}
-
-	if rowsAffected == 0 {
-		return fmt.Errorf("project with ID %s not found", projectID)
-	}
-
-	return nil
+	// Project was successfully deleted, we have the title
+	return &projectTitle, nil
 }
 
 func (r *DB) GetProjectByID(projectID uuid.UUID) (*domain.Project, error) {

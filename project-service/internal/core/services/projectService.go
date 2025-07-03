@@ -47,3 +47,17 @@ func (p *ProjectService) UpdateProject(project *domain.Project) (*domain.Project
 
 	return updatedProject, nil
 }
+
+
+func (p *ProjectService) DeleteProject(projectID string) (*string, error) {
+	id, err := uuid.Parse(projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	title, err := p.ProjectRepo.DeleteProject(id)
+	if err != nil {
+		return nil, err
+	}
+	return title, nil
+}

@@ -8,7 +8,7 @@ import (
 type ProjectRepo interface {
 	CreateProject(project *domain.Project) (*domain.Project, error)
 	UpdateProject(project *domain.Project) (*domain.Project, error)
-	DeleteProject(projectID uuid.UUID) error
+	DeleteProject(projectID uuid.UUID) (*string, error)
 	GetProjectByID(projectID uuid.UUID) (*domain.Project, error)
 	GetAllProjects(limit, offset int, filters map[string]interface{}) ([]*domain.Project, int, error)
 }

@@ -1,7 +1,7 @@
 package handler
 
 import (
-
+	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -179,3 +179,18 @@ func (p *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSON(w, r, http.StatusCreated, utils.Envelope{"sucess": true, "message":"Project updated successfully" ,"project": new_project}, nil)
 
 }
+
+
+func (p *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
+	projectID_str := utils.GetURLparams(r, "project_id")
+
+	title, err := p.project_service.DeleteProject(projectID_str)
+	if err != nil {
+		utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": err.Error()}, nil)
+		return
+	}
+
+	// return sucess status:
+	utils.WriteJSON(w, r, http.StatusOK, utils.Envelope{"success": true, "message": fmt.Sprintf("Project %s deleted successfully", *title), }, nil)
+
+} 
