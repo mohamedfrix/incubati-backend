@@ -11,7 +11,7 @@ import (
 // TaskRepository defines the contract for task data operations
 type TaskRepository interface {
 	// Task CRUD operations
-	Create(ctx context.Context, task *domain.Task) error
+	Create(ctx context.Context, task *domain.Task) (*domain.Task, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.Task, error)
 	Update(ctx context.Context, id uuid.UUID, task *domain.UpdateTaskRequest) (*domain.Task, error)
 	Delete(ctx context.Context, id uuid.UUID) error
