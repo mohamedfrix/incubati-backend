@@ -67,6 +67,12 @@ func (h *ProjectMentorHandler) AddMentorToProject(w http.ResponseWriter, r *http
 
 	projectMentor.HoursCommitted = input.HoursCommitted
 
+	projectMentor.ProjectID, err = uuid.Parse(projectID_str)
+	if err != nil {
+		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"error": "invalid project ID"}, nil)
+		return
+	}
+
 	// assign the mentor:
 	pMentor, err := h.ProjectMentorService.AssignMentor(r.Context(), &projectMentor)
 	if err != nil {

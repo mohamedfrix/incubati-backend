@@ -14,4 +14,13 @@ type ProjectMemberRepo interface {
 	GetUserProjects(userID uuid.UUID, activeOnly bool) ([]*domain.ProjectMember, error)
 	IsUserMemberOfProject(projectID, userID uuid.UUID) (bool, error)
 	GetUserProjectMembership(userID, projectID uuid.UUID) (*domain.ProjectMember, error)
+	GetProjectMemberStatistics(projectID uuid.UUID) (*ProjectMemberStatistics, error)
+}
+
+// ProjectMemberStatistics represents project member statistics
+type ProjectMemberStatistics struct {
+	TotalMembers      int            `json:"total_members"`
+	ActiveMembers     int            `json:"active_members"`
+	MembersByRole     map[string]int `json:"members_by_role"`
+	RecentJoins30Days int            `json:"recent_joins_30_days"`
 }

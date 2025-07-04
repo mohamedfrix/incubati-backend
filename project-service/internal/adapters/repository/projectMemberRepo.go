@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/moulaybdl/incubAT/project_service/internal/core/domain"
+	"github.com/moulaybdl/incubAT/project_service/internal/core/ports"
 )
 
 func (r *DB) AddProjectMember(member *domain.ProjectMember) (*domain.ProjectMember, error) {
@@ -321,4 +322,51 @@ func (r *DB) GetUserProjectMembership(userID, projectID uuid.UUID) (*domain.Proj
 	}
 
 	return &member, nil
+}
+
+func (r *DB) GetProjectMemberStatistics(projectID uuid.UUID) (*ports.ProjectMemberStatistics, error) {
+	query := `
+		SELECT 
+			COUNT(*) as total_members,
+			COUNT(CASE WHEN is_active = true THEN 1 END) as active_members,
+			COUNT(CASE WHEN joined_date >= CURRENT_DATE - INTERVAL '30 days' THEN 1 END) as recent_joins
+		FROM project_members
+		WHERE project_id = $1`
+
+	var stats ports.ProjectMemberStatistics
+	err := r.db.QueryRow(query, projectID).Scan(
+		&stats.TotalMembers,
+		&stats.ActiveMembers,
+		&stats.RecentJoins30Days,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get project member statistics: %w", err)
+	}
+
+	// Get members by role
+	roleQuery := `
+		SELECT role, COUNT(*) 
+		FROM project_members
+		WHERE project_id = $1
+		GROUP BY role`
+
+	roleRows, err := r.db.Query(roleQuery, projectID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get member role statistics: %w", err)
+	}
+	defer roleRows.Close()
+
+	stats.MembersByRole = make(map[string]int)
+	for roleRows.Next() {
+		var role string
+		var count int
+		err := roleRows.Scan(&role, &count)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan member role: %w", err)
+		}
+		stats.MembersByRole[role] = count
+	}
+
+	return &stats, nil
 }

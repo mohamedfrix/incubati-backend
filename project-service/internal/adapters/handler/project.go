@@ -87,7 +87,7 @@ func (p *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// return reponse:
-	utils.WriteJSON(w, r, http.StatusCreated, utils.Envelope{"sucess": true, "message":"Project created successfully" ,"project": response}, nil)
+	utils.WriteJSON(w, r, http.StatusCreated, utils.Envelope{"success": true, "message":"Project created successfully" ,"data": response}, nil)
 
 }
 
@@ -101,7 +101,7 @@ func (p *ProjectHandler) GetProjectByID(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	utils.WriteJSON(w, r, http.StatusOK, utils.Envelope{"sucess": true, "message":"Project retrieved successfully" ,"project": project}, nil)
+	utils.WriteJSON(w, r, http.StatusOK, utils.Envelope{"success": true, "message":"Project retrieved successfully" ,"project": project}, nil)
 }
 
 func (p *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
@@ -176,7 +176,7 @@ func (p *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 
 
 	// return reponse:
-		utils.WriteJSON(w, r, http.StatusCreated, utils.Envelope{"sucess": true, "message":"Project updated successfully" ,"project": new_project}, nil)
+		utils.WriteJSON(w, r, http.StatusCreated, utils.Envelope{"success": true, "message":"Project updated successfully" ,"project": new_project}, nil)
 
 }
 
@@ -192,5 +192,28 @@ func (p *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
 
 	// return sucess status:
 	utils.WriteJSON(w, r, http.StatusOK, utils.Envelope{"success": true, "message": fmt.Sprintf("Project %s deleted successfully", *title), }, nil)
+}
 
-} 
+
+func (p *ProjectHandler) GetProjectStatistics(w http.ResponseWriter, r *http.Request) {
+	projectID_str := utils.GetURLparams(r, "project_id")
+	
+	projectID, err := uuid.Parse(projectID_str)
+	if err != nil {
+		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"error": "Invalid project ID format"}, nil)
+		return
+	}
+
+	// Get project statistics
+	statistics, err := p.project_service.GetProjectStatistics(r.Context(), projectID)
+	if err != nil {
+		utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": err.Error()}, nil)
+		return
+	}
+
+	// Return success response
+	utils.WriteJSON(w, r, http.StatusOK, utils.Envelope{
+		"success": true,
+		"data":    statistics,
+	}, nil)
+}
