@@ -8,21 +8,13 @@ import (
 	"time"
 
 	"moulaybdl/zindy/task_service/internal/core/domain"
-	"moulaybdl/zindy/task_service/internal/core/ports"
 
 	"github.com/google/uuid"
 )
 
-type TaskRepository struct {
-	db *sql.DB
-}
-
-func NewTaskRepository(db *sql.DB) ports.TaskRepository {
-	return &TaskRepository{db: db}
-}
 
 // Create creates a new task and returns the created task
-func (r *TaskRepository) Create(ctx context.Context, task *domain.Task) (*domain.Task, error) {
+func (db *DB) Create(ctx context.Context, task *domain.Task) (*domain.Task, error) {
 	query := `
 		INSERT INTO tasks (id, title, description, status, priority, due_date, completed_at, assignee_id, project_id, milestone_id, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
@@ -37,7 +29,7 @@ func (r *TaskRepository) Create(ctx context.Context, task *domain.Task) (*domain
 	// Set defaults
 	task.SetDefaults()
 	
-	row := r.db.QueryRowContext(ctx, query,
+	row := db.db.QueryRowContext(ctx, query,
 		task.ID,
 		task.Title,
 		task.Description,
@@ -76,7 +68,7 @@ func (r *TaskRepository) Create(ctx context.Context, task *domain.Task) (*domain
 }
 
 // GetByID retrieves a task by its ID
-func (r *TaskRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Task, error) {
+func (db *DB) GetByID(ctx context.Context, id uuid.UUID) (*domain.Task, error) {
 	query := `
 		SELECT id, title, description, status, priority, due_date, completed_at, assignee_id, project_id, milestone_id, created_at, updated_at
 		FROM tasks
@@ -84,7 +76,7 @@ func (r *TaskRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Tas
 	`
 	
 	task := &domain.Task{}
-	row := r.db.QueryRowContext(ctx, query, id)
+	row := db.db.QueryRowContext(ctx, query, id)
 	
 	err := row.Scan(
 		&task.ID,
@@ -112,7 +104,7 @@ func (r *TaskRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Tas
 }
 
 // Update updates an existing task
-func (r *TaskRepository) Update(ctx context.Context, id uuid.UUID, req *domain.UpdateTaskRequest) (*domain.Task, error) {
+func (db *DB) Update(ctx context.Context, id uuid.UUID, req *domain.UpdateTaskRequest) (*domain.Task, error) {
 	// Build dynamic query based on provided fields
 	setParts := []string{}
 	args := []interface{}{}
@@ -173,7 +165,7 @@ func (r *TaskRepository) Update(ctx context.Context, id uuid.UUID, req *domain.U
 	}
 	
 	if len(setParts) == 0 {
-		return r.GetByID(ctx, id)
+		return db.GetByID(ctx, id)
 	}
 	
 	// Always update the updated_at field
@@ -190,19 +182,19 @@ func (r *TaskRepository) Update(ctx context.Context, id uuid.UUID, req *domain.U
 		WHERE id = $%d
 	`, strings.Join(setParts, ", "), argIndex)
 	
-	_, err := r.db.ExecContext(ctx, query, args...)
+	_, err := db.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
 	
-	return r.GetByID(ctx, id)
+	return db.GetByID(ctx, id)
 }
 
 // Delete deletes a task by its ID
-func (r *TaskRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (db *DB) Delete(ctx context.Context, id uuid.UUID) error {
 	query := `DELETE FROM tasks WHERE id = $1`
 	
-	result, err := r.db.ExecContext(ctx, query, id)
+	result, err := db.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return err
 	}
@@ -220,7 +212,7 @@ func (r *TaskRepository) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // GetByProjectID retrieves all tasks for a specific project
-func (r *TaskRepository) GetByProjectID(ctx context.Context, projectID uuid.UUID) ([]domain.Task, error) {
+func (db *DB) GetByProjectID(ctx context.Context, projectID uuid.UUID) ([]domain.Task, error) {
 	query := `
 		SELECT id, title, description, status, priority, due_date, completed_at, assignee_id, project_id, milestone_id, created_at, updated_at
 		FROM tasks
@@ -228,17 +220,17 @@ func (r *TaskRepository) GetByProjectID(ctx context.Context, projectID uuid.UUID
 		ORDER BY created_at DESC
 	`
 	
-	rows, err := r.db.QueryContext(ctx, query, projectID)
+	rows, err := db.db.QueryContext(ctx, query, projectID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	
-	return r.scanTasks(rows)
+	return db.scanTasks(rows)
 }
 
 // GetByUserID retrieves all tasks assigned to a specific user
-func (r *TaskRepository) GetByUserID(ctx context.Context, userID uuid.UUID) ([]domain.Task, error) {
+func (db *DB) GetByUserID(ctx context.Context, userID uuid.UUID) ([]domain.Task, error) {
 	query := `
 		SELECT id, title, description, status, priority, due_date, completed_at, assignee_id, project_id, milestone_id, created_at, updated_at
 		FROM tasks
@@ -246,17 +238,17 @@ func (r *TaskRepository) GetByUserID(ctx context.Context, userID uuid.UUID) ([]d
 		ORDER BY created_at DESC
 	`
 	
-	rows, err := r.db.QueryContext(ctx, query, userID)
+	rows, err := db.db.QueryContext(ctx, query, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	
-	return r.scanTasks(rows)
+	return db.scanTasks(rows)
 }
 
 // GetByMilestoneID retrieves all tasks for a specific milestone
-func (r *TaskRepository) GetByMilestoneID(ctx context.Context, milestoneID uuid.UUID) ([]domain.Task, error) {
+func (db *DB) GetByMilestoneID(ctx context.Context, milestoneID uuid.UUID) ([]domain.Task, error) {
 	query := `
 		SELECT id, title, description, status, priority, due_date, completed_at, assignee_id, project_id, milestone_id, created_at, updated_at
 		FROM tasks
@@ -264,17 +256,17 @@ func (r *TaskRepository) GetByMilestoneID(ctx context.Context, milestoneID uuid.
 		ORDER BY created_at DESC
 	`
 	
-	rows, err := r.db.QueryContext(ctx, query, milestoneID)
+	rows, err := db.db.QueryContext(ctx, query, milestoneID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	
-	return r.scanTasks(rows)
+	return db.scanTasks(rows)
 }
 
 // GetByStatus retrieves all tasks with a specific status
-func (r *TaskRepository) GetByStatus(ctx context.Context, status domain.TaskStatus) ([]domain.Task, error) {
+func (db *DB) GetByStatus(ctx context.Context, status domain.TaskStatus) ([]domain.Task, error) {
 	query := `
 		SELECT id, title, description, status, priority, due_date, completed_at, assignee_id, project_id, milestone_id, created_at, updated_at
 		FROM tasks
@@ -282,17 +274,17 @@ func (r *TaskRepository) GetByStatus(ctx context.Context, status domain.TaskStat
 		ORDER BY created_at DESC
 	`
 	
-	rows, err := r.db.QueryContext(ctx, query, status)
+	rows, err := db.db.QueryContext(ctx, query, status)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	
-	return r.scanTasks(rows)
+	return db.scanTasks(rows)
 }
 
 // AssignTask assigns a task to a user with optional updates
-func (r *TaskRepository) AssignTask(ctx context.Context, taskID uuid.UUID, req *domain.AssignTaskRequest) (*domain.Task, error) {
+func (db *DB) AssignTask(ctx context.Context, taskID uuid.UUID, req *domain.AssignTaskRequest) (*domain.Task, error) {
 	setParts := []string{"assignee_id = $2"}
 	args := []interface{}{taskID, req.UserID}
 	argIndex := 3
@@ -330,23 +322,23 @@ func (r *TaskRepository) AssignTask(ctx context.Context, taskID uuid.UUID, req *
 		WHERE id = $1
 	`, strings.Join(setParts, ", "))
 	
-	_, err := r.db.ExecContext(ctx, query, args...)
+	_, err := db.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
 	
-	return r.GetByID(ctx, taskID)
+	return db.GetByID(ctx, taskID)
 }
 
 // UpdateStatus updates only the status of a task
-func (r *TaskRepository) UpdateStatus(ctx context.Context, taskID uuid.UUID, status domain.TaskStatus) error {
+func (db *DB) UpdateStatus(ctx context.Context, taskID uuid.UUID, status domain.TaskStatus) error {
 	query := `
 		UPDATE tasks 
 		SET status = $1, updated_at = $2
 		WHERE id = $3
 	`
 	
-	result, err := r.db.ExecContext(ctx, query, status, time.Now(), taskID)
+	result, err := db.db.ExecContext(ctx, query, status, time.Now(), taskID)
 	if err != nil {
 		return err
 	}
@@ -364,7 +356,7 @@ func (r *TaskRepository) UpdateStatus(ctx context.Context, taskID uuid.UUID, sta
 }
 
 // scanTasks is a helper method to scan multiple task rows
-func (r *TaskRepository) scanTasks(rows *sql.Rows) ([]domain.Task, error) {
+func (db *DB) scanTasks(rows *sql.Rows) ([]domain.Task, error) {
 	var tasks []domain.Task
 	
 	for rows.Next() {

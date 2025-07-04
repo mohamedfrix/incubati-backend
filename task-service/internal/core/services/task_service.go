@@ -4,6 +4,8 @@ import (
 	"context"
 	"moulaybdl/zindy/task_service/internal/core/domain"
 	"moulaybdl/zindy/task_service/internal/core/ports"
+
+	"github.com/google/uuid"
 )
 
 
@@ -20,7 +22,7 @@ func NewTaskService(task_repo ports.TaskRepository) *TaskService {
 }
 
 
-func (t *TaskService) CreateTask(req *domain.CreateTaskRequest) (*domain.Task, error) {
+func (t *TaskService) CreateTask(ctx context.Context, req *domain.CreateTaskRequest) (*domain.Task, error) {
 		var task domain.Task
 
 	task.Title = req.Title
@@ -54,3 +56,16 @@ func (t *TaskService) CreateTask(req *domain.CreateTaskRequest) (*domain.Task, e
 	return t.TaskRepo.Create(context.Background(), &task)
 }
 
+
+func (t *TaskService) GetTask(ctx context.Context, id uuid.UUID) (*domain.Task, error) {
+	return t.TaskRepo.GetByID(context.Background(), id)
+}
+
+
+func (t *TaskService) UpdateTask(ctx context.Context, id uuid.UUID, req *domain.UpdateTaskRequest) (*domain.Task, error) {
+	return t.TaskRepo.Update(ctx, id, req)
+}
+
+func (t *TaskService) DeleteTask(ctx context.Context, id uuid.UUID) error {
+	return t.TaskRepo.Delete(ctx, id)
+}
