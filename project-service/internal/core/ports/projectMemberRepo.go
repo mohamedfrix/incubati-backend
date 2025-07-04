@@ -13,4 +13,5 @@ type ProjectMemberRepo interface {
 	GetProjectMembers(projectID uuid.UUID, activeOnly bool) ([]*domain.ProjectMember, error)
 	GetUserProjects(userID uuid.UUID, activeOnly bool) ([]*domain.ProjectMember, error)
 	IsUserMemberOfProject(projectID, userID uuid.UUID) (bool, error)
+	GetUserProjectMembership(userID, projectID uuid.UUID) (*domain.ProjectMember, error)
 }

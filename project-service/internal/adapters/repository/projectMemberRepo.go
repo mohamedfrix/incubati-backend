@@ -288,3 +288,37 @@ func (r *DB) IsUserMemberOfProject(projectID, userID uuid.UUID) (bool, error) {
 
 	return exists, nil
 }
+
+func (r *DB) GetUserProjectMembership(userID, projectID uuid.UUID) (*domain.ProjectMember, error) {
+	query := `
+		SELECT id, project_id, user_id, role, is_active, joined_date,
+			   left_date, can_edit_project, can_manage_tasks, can_view_reports,
+			   created_at, updated_at
+		FROM project_members
+		WHERE user_id = $1 AND project_id = $2`
+
+	var member domain.ProjectMember
+	err := r.db.QueryRow(query, userID, projectID).Scan(
+		&member.ID,
+		&member.ProjectID,
+		&member.UserID,
+		&member.Role,
+		&member.IsActive,
+		&member.JoinedDate,
+		&member.LeftDate,
+		&member.CanEditProject,
+		&member.CanManageTasks,
+		&member.CanViewReports,
+		&member.CreatedAt,
+		&member.UpdatedAt,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // User is not a member of this project
+		}
+		return nil, fmt.Errorf("failed to get user project membership: %w", err)
+	}
+
+	return &member, nil
+}
