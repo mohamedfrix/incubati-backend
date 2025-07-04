@@ -1,0 +1,282 @@
+### Variables (Update these after creating applications and documents)
+@admin_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjYmI4ZjI5ZC0wYzNmLTQ4YTEtOWFkMi0xOGNhZTIxNGQ0ZTYiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzUxNjYxMzI0fQ.oykNsSs_xfk2yWFgU3i9a5TWHiMCahkM2cpeF-_vYks
+@encadrant_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI5ZjNhYzkwNi0xOGFiLTQ2N2UtODUxMC1jYjFmOGM1OWYyODAiLCJlbWFpbCI6Im5ld2VuY2FkcmFudEBleGFtcGxlLmNvbSIsInJvbGUiOiJlbmNhZHJhbnQiLCJleHAiOjE3NTE2NjEzODd9.6qrKVJ1Z5qbLIL8AaqGAmA-OEQ-rsanlW2ru9T8EYf0
+@student_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4Zjc4YjBjZC0xYzJjLTQwMjgtOWU3My0wMmRlYmY0Mzc1ZmMiLCJlbWFpbCI6Im5ld3N0dWRlbnRAZXhhbXBsZS5jb20iLCJyb2xlIjoiZXR1ZGlhbnQiLCJleHAiOjE3NTE2NjEzNDh9.urKVJqAbYi0FxAqrqwLqjmeufy-rzsxQ9uutLlhGjKA
+
+@application_id = aa601b24-c1b0-4276-9e0b-1fa5a2b1b034
+
+@other_user_application_id = 5bbdd883-a2fb-4ff1-afa6-a42feefd6b62
+@document_id = 94f2a758-e720-4800-b76b-eca6fecf4322
+@other_user_document_id = 0143878d-3149-4e58-aa0d-99d02b1bdaad
+
+### =============================================================================
+### DOCUMENT MANAGEMENT TESTS - API Gateway (Port 4000)
+### =============================================================================
+
+### 1. Upload Document (Owner - Student)
+POST http://localhost:4000/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+Authorization: Bearer {{student_token}}
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="application_id"
+
+{{application_id}}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+CV and Cover Letter
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="cv_cover_letter.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+This is a sample PDF content for testing.
+This would be actual PDF binary data in real usage.
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 2. Upload Academic Transcript (Owner)
+POST http://localhost:4000/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+Authorization: Bearer {{student_token}}
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="application_id"
+
+{{application_id}}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Academic Transcript
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="transcript.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Sample academic transcript content.
+Would be actual PDF data in real usage.
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 3. Upload Text Document (Owner)
+POST http://localhost:4000/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+Authorization: Bearer {{student_token}}
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="application_id"
+
+{{application_id}}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Project Proposal
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="proposal.txt"
+Content-Type: text/plain
+
+Project Proposal for Internship
+
+Objective: Develop a web application for inventory management
+Technologies: React, Node.js, PostgreSQL, Docker
+Duration: 6 months
+Expected Outcomes: Full-featured inventory system with real-time updates
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 4. Upload Document (Admin for any application)
+POST http://localhost:4000/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+Authorization: Bearer {{admin_token}}
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="application_id"
+
+{{application_id}}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Admin Added Document
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="admin_notes.txt"
+Content-Type: text/plain
+
+Administrative notes and feedback for the application.
+Added by admin for review purposes.
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 5. Upload Document (Not Owner - Should Fail)
+POST http://localhost:4000/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+Authorization: Bearer {{student_token}}
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="application_id"
+
+{{other_user_application_id}}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Should Fail
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="unauthorized.txt"
+Content-Type: text/plain
+
+This upload should fail because the user doesn't own this application.
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 6. Upload Document (Missing Application ID)
+POST http://localhost:4000/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+Authorization: Bearer {{student_token}}
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Missing App ID
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="missing_app_id.txt"
+Content-Type: text/plain
+
+This should fail due to missing application_id.
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 7. Upload Document (Missing File)
+POST http://localhost:4000/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+Authorization: Bearer {{student_token}}
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="application_id"
+
+{{application_id}}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Missing File
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 8. Upload Document (Unauthorized)
+POST http://localhost:4000/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="application_id"
+
+{{application_id}}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Unauthorized Upload
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="unauthorized.txt"
+Content-Type: text/plain
+
+This should fail due to missing authentication.
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### =============================================================================
+### LIST DOCUMENTS
+### =============================================================================
+
+### 9. List Documents (Owner)
+GET http://localhost:4000/documents?application_id={{application_id}}
+Authorization: Bearer {{student_token}}
+
+### 10. List Documents (Admin)
+GET http://localhost:4000/documents?application_id={{application_id}}
+Authorization: Bearer {{admin_token}}
+
+### 11. List Documents (Encadrant)
+GET http://localhost:4000/documents?application_id={{application_id}}
+Authorization: Bearer {{encadrant_token}}
+
+### 12. List Documents (Not Owner - Should Fail)
+GET http://localhost:4000/documents?application_id={{other_user_application_id}}
+Authorization: Bearer {{student_token}}
+
+### 13. List Documents (Missing Application ID)
+GET http://localhost:4000/documents
+Authorization: Bearer {{student_token}}
+
+### 14. List Documents (Invalid Application ID)
+GET http://localhost:4000/documents?application_id=invalid-uuid
+Authorization: Bearer {{student_token}}
+
+### 15. List Documents (Unauthorized)
+GET http://localhost:4000/documents?application_id={{application_id}}
+
+### =============================================================================
+### GET DOCUMENT BY ID
+### =============================================================================
+
+### 16. Get Document (Owner)
+GET http://localhost:4000/documents/{{document_id}}
+Authorization: Bearer {{student_token}}
+
+### 17. Get Document (Admin)
+GET http://localhost:4000/documents/{{document_id}}
+Authorization: Bearer {{admin_token}}
+
+### 18. Get Document (Encadrant)
+GET http://localhost:4000/documents/{{document_id}}
+Authorization: Bearer {{encadrant_token}}
+
+### 19. Get Document (Not Owner - Should Fail)
+GET http://localhost:4000/documents/{{other_user_document_id}}
+Authorization: Bearer {{student_token}}
+
+### 20. Get Document (Invalid Document ID)
+GET http://localhost:4000/documents/invalid-uuid
+Authorization: Bearer {{student_token}}
+
+### 21. Get Document (Unauthorized)
+GET http://localhost:4000/documents/{{document_id}}
+
+### =============================================================================
+### GET DOCUMENT DOWNLOAD URL
+### =============================================================================
+
+### 22. Get Document Download URL (Owner)
+GET http://localhost:4000/documents/{{document_id}}/download
+Authorization: Bearer {{student_token}}
+
+### 23. Get Document Download URL (Admin)
+GET http://localhost:4000/documents/{{document_id}}/download
+Authorization: Bearer {{admin_token}}
+
+### 24. Get Document Download URL (Encadrant)
+GET http://localhost:4000/documents/{{document_id}}/download
+Authorization: Bearer {{encadrant_token}}
+
+### 25. Get Document Download URL (Not Owner - Should Fail)
+GET http://localhost:4000/documents/{{other_user_document_id}}/download
+Authorization: Bearer {{student_token}}
+
+### 26. Get Document Download URL (Invalid Document ID)
+GET http://localhost:4000/documents/invalid-uuid/download
+Authorization: Bearer {{student_token}}
+
+### 27. Get Document Download URL (Unauthorized)
+GET http://localhost:4000/documents/{{document_id}}/download
+
+### =============================================================================
+### DELETE DOCUMENTS
+### =============================================================================
+
+### 28. Delete Document (Owner)
+DELETE http://localhost:4000/documents/{{document_id}}
+Authorization: Bearer {{student_token}}
+
+### 29. Delete Document (Admin)
+DELETE http://localhost:4000/documents/{{document_id}}
+Authorization: Bearer {{admin_token}}
+
+### 30. Delete Document (Not Owner - Should Fail)
+DELETE http://localhost:4000/documents/{{other_user_document_id}}
+Authorization: Bearer {{student_token}}
+
+### 31. Delete Document (Invalid Document ID)
+DELETE http://localhost:4000/documents/invalid-uuid
+Authorization: Bearer {{student_token}}
+
+### 32. Delete Document (Unauthorized)
+DELETE http://localhost:4000/documents/{{document_id}} 

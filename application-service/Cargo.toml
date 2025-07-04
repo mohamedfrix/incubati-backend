@@ -1,6 +1,70 @@
 [package]
 name = "application-service"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
+# Web framework
+axum = { version = "0.7", features = ["multipart"] }
+axum-extra = "0.9"
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "fs", "trace"] }
+hyper = { version = "1.0", features = ["full"] }
+
+# Async runtime
+tokio = { version = "1.0", features = ["full"] }
+async-trait = "0.1"
+futures-util = "0.3"
+
+# Database
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "json", "rust_decimal"] }
+rust_decimal = { version = "1.0", features = ["serde"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# UUID
+uuid = { version = "1.0", features = ["v4", "serde"] }
+
+# Date/Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Configuration
+dotenvy = "0.15"
+
+# Validation
+validator = { version = "0.18", features = ["derive"] }
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# gRPC
+tonic = "0.10"
+prost = "0.12"
+prost-types = "0.12"
+tokio-stream = "0.1"
+tonic-reflection = "0.10"
+tonic-web = "0.10"
+tonic-health = "0.10"
+
+# File handling
+mime = "0.3"
+multer = "3.0"
+
+# Minio/S3 client
+rusoto_core = "0.48"
+rusoto_s3 = "0.48"
+rusoto_credential = "0.48"
+bytes = "1.0"
+tokio-util = "0.7"
+
+[build-dependencies]
+tonic-build = "0.10"
+
+

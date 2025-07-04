@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:latest
+    container_name: api-gateway-db
+    environment:
+      POSTGRES_USER: frix
+      POSTGRES_PASSWORD: 07vk640xz
+      POSTGRES_DB: hehe
+    ports:
+      - "7000:5432"
+    volumes:
+      - ./volumes/api-gateway-db_data:/var/lib/postgresql/data
+  application-service-db:
+    container_name: application-service-db
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: frix
+      POSTGRES_PASSWORD: 07vk640xz
+      POSTGRES_DB: hehe
+    ports:
+      - "7001:5432"
+    volumes:
+      - ./volumes/application-service-db_data:/var/lib/postgresql/data
+      
+  minio:
+    container_name: incubati-minio
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: frix
+      MINIO_ROOT_PASSWORD: 07vk640xz
+    volumes:
+      - ./volumes/minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3

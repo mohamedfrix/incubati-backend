@@ -1,0 +1,229 @@
+# Large Document Simulation
+
+This file simulates a large document for testing file size limits and upload performance.
+
+**Purpose:** Test large file upload handling, size validation, and performance under load.
+
+**Simulated Content:** This would be a much larger file in real testing scenarios.
+
+---
+
+## Extended Business Plan - EcoSmart Solutions
+
+### Executive Summary
+EcoSmart Solutions is an innovative technology company focused on developing sustainable business solutions through advanced IoT and AI technologies. Our flagship product is a comprehensive waste management optimization platform that serves municipalities and private waste collection companies worldwide.
+
+### Market Analysis
+The global smart waste management market is experiencing unprecedented growth, driven by urbanization, environmental concerns, and the need for operational efficiency. Current market size stands at $15 billion with a projected CAGR of 30% over the next five years.
+
+**Market Segments:**
+1. Municipal Waste Management
+2. Commercial Waste Collection
+3. Industrial Waste Processing
+4. Residential Smart Solutions
+5. Environmental Monitoring Services
+
+### Technology Platform
+Our proprietary platform combines several cutting-edge technologies:
+
+**IoT Sensor Network:**
+- Smart bin sensors for fill-level monitoring
+- GPS tracking for fleet optimization
+- Environmental sensors for air quality monitoring
+- Weight sensors for waste categorization
+
+**AI and Machine Learning:**
+- Route optimization algorithms
+- Predictive maintenance models
+- Demand forecasting systems
+- Anomaly detection for operational efficiency
+
+**Data Analytics:**
+- Real-time dashboard for operations management
+- Historical analytics for trend analysis
+- Predictive insights for capacity planning
+- Performance metrics and KPI tracking
+
+### Financial Projections
+
+**Year 1:**
+- Revenue: $500,000
+- Expenses: $800,000
+- Net Loss: $(300,000)
+- Customers: 10 pilot municipalities
+
+**Year 2:**
+- Revenue: $2,000,000
+- Expenses: $1,500,000
+- Net Profit: $500,000
+- Customers: 50 active municipalities
+
+**Year 3:**
+- Revenue: $8,000,000
+- Expenses: $5,000,000
+- Net Profit: $3,000,000
+- Customers: 200 active municipalities
+
+**Year 4:**
+- Revenue: $20,000,000
+- Expenses: $12,000,000
+- Net Profit: $8,000,000
+- Customers: 500 active municipalities
+
+**Year 5:**
+- Revenue: $45,000,000
+- Expenses: $25,000,000
+- Net Profit: $20,000,000
+- Customers: 1,000 active municipalities
+
+### Team Structure
+
+**Leadership Team:**
+- CEO: Strategic vision and business development
+- CTO: Technology architecture and development
+- VP Sales: Market expansion and customer relations
+- VP Operations: Operational efficiency and scaling
+
+**Development Team:**
+- Senior Software Engineers (5)
+- IoT Hardware Engineers (3)
+- Data Scientists (4)
+- DevOps Engineers (2)
+- UI/UX Designers (2)
+
+**Business Team:**
+- Sales Representatives (8)
+- Customer Success Managers (4)
+- Marketing Specialists (3)
+- Business Analysts (2)
+
+### Competitive Analysis
+
+**Direct Competitors:**
+1. SmartBin Technologies
+2. WasteIQ Solutions
+3. CleanTech Analytics
+4. Urban Waste Systems
+5. GreenRoute Optimization
+
+**Competitive Advantages:**
+- Superior AI algorithms with 95% accuracy
+- Comprehensive IoT sensor integration
+- Real-time analytics and reporting
+- Scalable cloud-native architecture
+- Strong customer support and training
+
+### Risk Assessment
+
+**Technical Risks:**
+- IoT hardware reliability in harsh environments
+- Data security and privacy compliance
+- Integration challenges with existing systems
+- Scalability of cloud infrastructure
+
+**Market Risks:**
+- Regulatory changes in waste management
+- Economic downturns affecting municipal budgets
+- Competition from established players
+- Customer adoption resistance
+
+**Mitigation Strategies:**
+- Comprehensive testing and quality assurance
+- Regular security audits and compliance reviews
+- Flexible integration APIs and documentation
+- Strategic partnerships with hardware vendors
+
+### Implementation Roadmap
+
+**Phase 1 (Months 1-6):**
+- Complete MVP development
+- Conduct pilot programs with 3 municipalities
+- Establish hardware supply chain
+- Build initial customer support team
+
+**Phase 2 (Months 7-12):**
+- Launch commercial version
+- Expand to 10 active customers
+- Develop mobile applications
+- Implement advanced analytics features
+
+**Phase 3 (Months 13-18):**
+- Scale to 25 customers
+- International market expansion
+- Add predictive maintenance features
+- Develop partner ecosystem
+
+**Phase 4 (Months 19-24):**
+- Reach 50 customers
+- Launch enterprise features
+- Implement AI-powered insights
+- Establish regional offices
+
+### Funding Requirements
+
+**Total Funding Needed:** $5,000,000
+
+**Use of Funds:**
+- Technology Development (40%): $2,000,000
+- Sales and Marketing (30%): $1,500,000
+- Operations and Infrastructure (20%): $1,000,000
+- Working Capital (10%): $500,000
+
+**Investment Timeline:**
+- Seed Round: $1,000,000 (Completed)
+- Series A: $2,000,000 (Current)
+- Series B: $2,000,000 (Planned Year 2)
+
+### Legal and Compliance
+
+**Intellectual Property:**
+- 3 pending patents for IoT sensor technology
+- 2 pending patents for optimization algorithms
+- Comprehensive trademark protection
+- Trade secret protection for proprietary algorithms
+
+**Regulatory Compliance:**
+- GDPR compliance for European operations
+- EPA regulations for environmental monitoring
+- FCC certification for IoT devices
+- ISO 27001 for information security
+
+### Partnership Strategy
+
+**Strategic Partners:**
+- Hardware suppliers for IoT sensors
+- Cloud infrastructure providers
+- System integrators for large deployments
+- Environmental consulting firms
+
+**Channel Partners:**
+- Regional distributors
+- Value-added resellers
+- Technology consultants
+- Municipal advisors
+
+### Sustainability Impact
+
+**Environmental Benefits:**
+- 40% reduction in fuel consumption
+- 30% decrease in operational costs
+- 50% improvement in route efficiency
+- Significant reduction in carbon emissions
+
+**Social Impact:**
+- Cleaner urban environments
+- Improved public health outcomes
+- Job creation in green technology sector
+- Enhanced quality of life for citizens
+
+---
+
+**Note:** This document represents a comprehensive business plan that would typically be much longer (50-100 pages) with detailed financial models, market research data, technical specifications, and supporting documentation. For testing purposes, this abbreviated version demonstrates the type of content and structure expected in large document uploads.
+
+**Testing Parameters:**
+- File size simulation: Large document handling
+- Content complexity: Mixed text, numbers, special characters
+- Structure: Hierarchical document organization
+- Formatting: Multiple section types and layouts
+
+*This file is used for testing large file upload capabilities and performance under load.*

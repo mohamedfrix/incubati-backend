@@ -1,0 +1,257 @@
+syntax = "proto3";
+
+package application_service;
+
+import "google/protobuf/timestamp.proto";
+
+// ===================== ENUMS =====================
+
+enum ApplicationType {
+  APPLICATION_TYPE_UNSPECIFIED = 0;
+  APPLICATION_TYPE_INTERNSHIP = 1;
+  APPLICATION_TYPE_INCUBATION = 2;
+  APPLICATION_TYPE_PFE = 3;
+}
+
+enum ApplicationStatus {
+  APPLICATION_STATUS_UNSPECIFIED = 0;
+  APPLICATION_STATUS_BROUILLON = 1;
+  APPLICATION_STATUS_EN_ATTENTE = 2;
+  APPLICATION_STATUS_APPROUVEE = 3;
+  APPLICATION_STATUS_REJETEE = 4;
+  APPLICATION_STATUS_MODIFICATION_DEMANDEE = 5;
+}
+
+// ===================== TYPE SPECIFIC DATA =====================
+
+message InternshipData {
+  string company = 1;
+  string position = 2;
+  int32 duration_months = 3;
+  string start_date = 4; // ISO date format
+  optional string supervisor_name = 5;
+  optional string supervisor_email = 6;
+  optional string description = 7;
+  optional string requirements = 8;
+}
+
+message IncubationData {
+  string project_name = 1;
+  string business_model = 2;
+  string target_market = 3;
+  optional string funding_amount = 4; // Decimal as string
+  int32 team_size = 5;
+  string project_stage = 6;
+  optional string description = 7;
+}
+
+message PfeData {
+  string title = 1;
+  string supervisor_name = 2;
+  optional string company = 3;
+  string academic_year = 4;
+  string specialization = 5;
+  string objectives = 6;
+  optional string methodology = 7;
+  optional string expected_outcomes = 8;
+}
+
+message TypeSpecificData {
+  oneof data {
+    InternshipData internship = 1;
+    IncubationData incubation = 2;
+    PfeData pfe = 3;
+  }
+}
+
+// ===================== REQUESTS =====================
+
+message CreateApplicationRequest {
+  string user_id = 1;
+  ApplicationType application_type = 2;
+  ApplicationStatus status = 3;
+  TypeSpecificData type_specific_data = 4;
+}
+
+message GetApplicationRequest {
+  string id = 1; // UUID as string
+}
+
+message UpdateApplicationRequest {
+  string id = 1; // UUID as string
+  optional int32 status = 2; // ApplicationStatus as int
+  optional string feedback = 3;
+  TypeSpecificData type_specific_data = 4;
+  string requesting_user_id = 5; // ID of the user making the request
+  string requesting_user_role = 6; // Role of the user making the request
+}
+
+message ChangeStatusRequest {
+  string id = 1; // UUID as string
+  ApplicationStatus status = 2;
+  optional string feedback = 3;
+  string requesting_user_id = 4; // ID of the user making the request
+  string requesting_user_role = 5; // Role of the user making the request
+}
+
+message DeleteApplicationRequest {
+  string id = 1; // UUID as string
+  string requesting_user_id = 2; // ID of the user making the request
+  string requesting_user_role = 3; // Role of the user making the request
+}
+
+message ListApplicationsRequest {
+  optional string user_id = 1;
+  optional int32 application_type = 2; // ApplicationType as int
+  optional int32 status = 3; // ApplicationStatus as int
+  optional string start_date = 4; // ISO date format
+  optional string end_date = 5; // ISO date format
+  optional int32 page = 6;
+  optional int32 page_size = 7;
+}
+
+// ===================== RESPONSES =====================
+
+message ApplicationResponse {
+  string id = 1;
+  ApplicationType application_type = 2;
+  string type_display = 3;
+  ApplicationStatus status = 4;
+  string status_display = 5;
+  optional google.protobuf.Timestamp submission_date = 6;
+  optional string feedback = 7;
+  string user_id = 8;
+  optional google.protobuf.Timestamp created_at = 9;
+  optional google.protobuf.Timestamp updated_at = 10;
+  repeated DocumentResponse documents = 11;
+  TypeSpecificData type_specific_data = 12;
+}
+
+message DocumentResponse {
+  string id = 1;
+  string application_id = 2;
+  string title = 3;
+  string file_path = 4;
+  string content_type = 5;
+  int64 file_size = 6;
+  optional google.protobuf.Timestamp created_at = 7;
+}
+
+message PaginatedApplicationResponse {
+  repeated ApplicationResponse results = 1;
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  int32 total_pages = 5;
+}
+
+message DeleteApplicationResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message StatusChangeResponse {
+  ApplicationStatus status = 1;
+  string status_display = 2;
+  optional string feedback = 3;
+}
+
+// ===================== DOCUMENT REQUESTS =====================
+
+message CreateDocumentRequest {
+  string application_id = 1; // UUID as string
+  string original_name = 2; // Original filename
+  bytes file_content = 3; // File binary content
+  string content_type = 4; // MIME type (optional, defaults to "application/octet-stream")
+  string document_type = 5; // Document type (optional, defaults to "general")
+  string requesting_user_id = 6; // ID of the user making the request
+  string requesting_user_role = 7; // Role of the user making the request
+}
+
+message GetDocumentRequest {
+  string id = 1; // UUID as string
+  string requesting_user_id = 2; // ID of the user making the request
+  string requesting_user_role = 3; // Role of the user making the request
+}
+
+message DeleteDocumentRequest {
+  string id = 1; // UUID as string
+  string requesting_user_id = 2; // ID of the user making the request
+  string requesting_user_role = 3; // Role of the user making the request
+}
+
+// ===================== DOCUMENT RESPONSES =====================
+
+message ApplicationDocumentsResponse {
+  string application_id = 1;
+  repeated DocumentResponse documents = 2;
+}
+
+message DeleteDocumentResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message DocumentDownloadUrlResponse {
+  string download_url = 1;
+  optional google.protobuf.Timestamp expires_at = 2;
+}
+
+message DocumentChunk {
+  bytes data = 1;
+  int32 chunk_number = 2;
+  bool is_last_chunk = 3;
+}
+
+// ===================== ERROR TYPES =====================
+
+message ErrorResponse {
+  int32 code = 1;
+  string message = 2;
+  repeated string details = 3;
+}
+
+// ===================== SERVICE DEFINITION =====================
+
+service ApplicationService {
+  // Create a new application
+  rpc CreateApplication(CreateApplicationRequest) returns (ApplicationResponse);
+  
+  // Get application by ID
+  rpc GetApplication(GetApplicationRequest) returns (ApplicationResponse);
+  
+  // Update application (full update)
+  rpc UpdateApplication(UpdateApplicationRequest) returns (ApplicationResponse);
+  
+  // Change application status (partial update)
+  rpc ChangeApplicationStatus(ChangeStatusRequest) returns (StatusChangeResponse);
+  
+  // Delete application
+  rpc DeleteApplication(DeleteApplicationRequest) returns (DeleteApplicationResponse);
+  
+  // List applications with filtering and pagination
+  rpc ListApplications(ListApplicationsRequest) returns (PaginatedApplicationResponse);
+}
+
+service DocumentService {
+  // Get documents for an application
+  rpc GetApplicationDocuments(GetApplicationRequest) returns (ApplicationDocumentsResponse);
+  
+  // Get document metadata by ID
+  rpc GetDocument(GetDocumentRequest) returns (DocumentResponse);
+  
+  // Create document metadata
+  rpc CreateDocument(CreateDocumentRequest) returns (DocumentResponse);
+  
+  // Delete document
+  rpc DeleteDocument(DeleteDocumentRequest) returns (DeleteDocumentResponse);
+  
+  // Get document download URL (for future implementation)
+  rpc GetDocumentDownloadUrl(GetDocumentRequest) returns (DocumentDownloadUrlResponse);
+  
+  // Upload document content via streaming (for future implementation)
+  rpc UploadDocumentStream(stream DocumentChunk) returns (DocumentResponse);
+  
+  // Download document content via streaming (for future implementation)
+  rpc DownloadDocumentStream(GetDocumentRequest) returns (stream DocumentChunk);
+}

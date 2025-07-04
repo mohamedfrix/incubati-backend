@@ -1,0 +1,347 @@
+### PFE (Final Year Project) Applications - Comprehensive Tests
+
+@baseUrl = http://localhost:8080
+@contentType = application/json
+@testUserId = test-user-pfe
+
+### 1. Create PFE Application - Complete Data
+# @name createFullPfe
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "Deep Learning for Medical Image Analysis in Cancer Detection",
+        "supervisor_name": "Dr. Maria Elena Rodriguez",
+        "company": "MedTech Solutions Inc",
+        "academic_year": "2024-2025",
+        "specialization": "Computer Science - Artificial Intelligence",
+        "objectives": "Develop and implement deep learning models for automated cancer detection in medical imaging, focusing on CT scans and MRI images with 95% accuracy target",
+        "methodology": "Literature review, dataset collection and preprocessing, CNN architecture design, model training with transfer learning, validation with clinical data, comparative analysis with existing methods",
+        "expected_outcomes": "Functional prototype with trained models, accuracy benchmarks, clinical validation results, research paper publication, and deployable software system"
+    }
+}
+
+###
+
+### 2. Create PFE Application - Minimal Required Fields
+# @name createMinimalPfe
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "Simple Web App",
+        "supervisor_name": "Prof. Smith",
+        "academic_year": "2024-2025",
+        "specialization": "Computer Science",
+        "objectives": "Build a web application"
+    }
+}
+
+###
+
+### 3. Create PFE Application - Academic Research Focus
+# @name createAcademicResearchPfe
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "Quantum Computing Algorithms for Optimization Problems",
+        "supervisor_name": "Prof. Dr. Quantum Researcher",
+        "academic_year": "2024-2025",
+        "specialization": "Computer Science - Quantum Computing",
+        "objectives": "Research and develop novel quantum algorithms for solving complex optimization problems in logistics and resource allocation",
+        "methodology": "Theoretical analysis of quantum algorithms, quantum circuit design, simulation using Qiskit, performance comparison with classical algorithms, complexity analysis",
+        "expected_outcomes": "Novel quantum algorithm implementations, theoretical complexity analysis, simulation results, academic publication, and open-source quantum computing library"
+    }
+}
+
+###
+
+### 4. Create PFE Application - Industry Collaboration
+# @name createIndustryCollabPfe
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "IoT-Based Smart Manufacturing System for Industry 4.0",
+        "supervisor_name": "Dr. Industrial Engineer",
+        "company": "Smart Manufacturing Corp",
+        "academic_year": "2024-2025",
+        "specialization": "Industrial Engineering - IoT Systems",
+        "objectives": "Design and implement an IoT-based monitoring and control system for smart manufacturing processes with real-time analytics and predictive maintenance",
+        "methodology": "Requirements analysis with industry partner, IoT sensor integration, data pipeline development, real-time analytics implementation, machine learning for predictive maintenance, system testing in production environment",
+        "expected_outcomes": "Working IoT system deployed in manufacturing facility, reduced downtime by 30%, predictive maintenance algorithms, comprehensive documentation, and industry implementation guide"
+    }
+}
+
+###
+
+### 5. Create PFE Application - No Company (Academic Only)
+# @name createAcademicOnlyPfe
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "Theoretical Analysis of Distributed Consensus Algorithms",
+        "supervisor_name": "Prof. Theory Researcher",
+        "academic_year": "2024-2025",
+        "specialization": "Computer Science - Distributed Systems",
+        "objectives": "Conduct theoretical analysis of consensus algorithms in distributed systems and propose improvements for Byzantine fault tolerance",
+        "methodology": "Literature review of existing consensus algorithms, mathematical modeling, formal verification using proof assistants, simulation of fault scenarios, theoretical complexity analysis",
+        "expected_outcomes": "Theoretical contributions to consensus algorithm research, formal proofs of correctness, simulation results, research publication, and recommendation for practical implementations"
+    }
+}
+
+###
+
+### 6. Create PFE Application - Different Academic Years
+# @name createDifferentYearPfe
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "Legacy System Modernization",
+        "supervisor_name": "Prof. Legacy Systems",
+        "company": "Old Tech Corp",
+        "academic_year": "2023-2024",
+        "specialization": "Software Engineering",
+        "objectives": "Modernize legacy systems with contemporary technologies and practices",
+        "methodology": "Legacy system analysis, migration strategy development, incremental modernization approach",
+        "expected_outcomes": "Modernized system architecture, migration documentation, performance improvements"
+    }
+}
+
+###
+
+### 7. Create PFE Application - Future Academic Year
+# @name createFutureYearPfe
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "Next Generation AI Systems",
+        "supervisor_name": "Dr. Future AI",
+        "company": "Future Tech Labs",
+        "academic_year": "2025-2026",
+        "specialization": "Artificial Intelligence - Next Gen",
+        "objectives": "Develop next-generation AI systems for future applications",
+        "methodology": "Advanced AI research, experimental methodologies, future technology integration",
+        "expected_outcomes": "Prototype AI systems, research contributions, future technology roadmap"
+    }
+}
+
+###
+
+### 8. Create PFE Application - Very Long Text Fields
+# @name createLongTextPfe
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "Comprehensive Multi-Modal Machine Learning System for Advanced Natural Language Processing and Computer Vision Integration with Real-Time Analytics",
+        "supervisor_name": "Professor Dr. Very Long Supervisor Name With Multiple Academic Titles And Research Specializations",
+        "company": "Very Long Company Name That Specializes In Advanced Technology Solutions And Research Development",
+        "academic_year": "2024-2025",
+        "specialization": "Computer Science - Multi-Modal AI and Advanced Machine Learning Systems",
+        "objectives": "Develop a comprehensive multi-modal machine learning system that integrates natural language processing, computer vision, and real-time analytics capabilities to solve complex business problems across multiple domains including healthcare, finance, manufacturing, and education. The system should demonstrate advanced capabilities in understanding and processing diverse data types, providing intelligent insights, and supporting decision-making processes with high accuracy and reliability.",
+        "methodology": "The methodology includes comprehensive literature review of current multi-modal AI systems, detailed requirements analysis with industry stakeholders, design of novel neural network architectures combining transformers and convolutional networks, implementation of advanced training strategies including transfer learning and multi-task learning, development of real-time processing pipelines using distributed computing frameworks, extensive testing with diverse datasets, performance evaluation using multiple metrics, comparison with state-of-the-art systems, and thorough documentation of findings and recommendations.",
+        "expected_outcomes": "The expected outcomes include a fully functional multi-modal AI system with demonstrated capabilities across multiple domains, comprehensive evaluation results showing performance improvements over existing systems, detailed technical documentation including architecture specifications and implementation guidelines, research publications in top-tier conferences and journals, open-source software libraries for community use, industry partnerships for real-world deployment, and recommendations for future research directions in multi-modal AI systems."
+    }
+}
+
+###
+
+### 9. Create PFE Application - Special Characters
+# @name createSpecialCharsPfe
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "Système d'IA pour l'Analyse Médïcale & Diagnostïc Avancé™",
+        "supervisor_name": "Dr. José María García-Rodríguez",
+        "company": "Téch Médical Sölutions GmbH & Co. KG",
+        "academic_year": "2024-2025",
+        "specialization": "Intelligence Artificielle & Médecine Numérique",
+        "objectives": "Développer un système d'IA avancé pour l'analyse médicale avec support Unicode: 中文, العربية, русский, ελληνικά",
+        "methodology": "Méthodologie incluant: recherche bibliographique, développement d'algorithmes ML/DL, tests cliniques, validation statistique",
+        "expected_outcomes": "Système fonctionnel avec précision >95%, publications académiques, brevets, déploiement clinique 🏥💻🧬"
+    }
+}
+
+###
+
+### 10. Create PFE Application - Missing Required Fields
+# @name createMissingFieldsPfe
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "Incomplete PFE Project",
+        "supervisor_name": "Prof. Incomplete",
+        "academic_year": "2024-2025"
+    }
+}
+
+###
+
+### 11. Create PFE Application - Invalid Academic Year Format
+# @name createInvalidYearFormatPfe
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "Invalid Year Format Project",
+        "supervisor_name": "Prof. Invalid Year",
+        "academic_year": "invalid-year-format",
+        "specialization": "Computer Science",
+        "objectives": "Test invalid academic year format"
+    }
+}
+
+###
+
+### 12. Create PFE Application - Empty Required Fields
+# @name createEmptyFieldsPfe
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "",
+        "supervisor_name": "",
+        "academic_year": "",
+        "specialization": "",
+        "objectives": ""
+    }
+}
+
+###
+
+### 13. Create PFE Application - Whitespace Only Fields
+# @name createWhitespaceFieldsPfe
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "   ",
+        "supervisor_name": "   ",
+        "academic_year": "   ",
+        "specialization": "   ",
+        "objectives": "   "
+    }
+}
+
+###
+
+### 14. Create PFE Application - Different Specializations
+# @name createDifferentSpecializationPfe
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "Blockchain for Supply Chain Management",
+        "supervisor_name": "Dr. Blockchain Expert",
+        "company": "Supply Chain Innovations",
+        "academic_year": "2024-2025",
+        "specialization": "Information Systems - Blockchain Technology",
+        "objectives": "Implement blockchain-based supply chain tracking and verification system",
+        "methodology": "Blockchain platform selection, smart contract development, integration testing, security analysis",
+        "expected_outcomes": "Functional blockchain system, improved supply chain transparency, security assessment report"
+    }
+}
+
+###
+
+### 15. Update Existing PFE Application
+# @name updatePfeApp
+@pfeId = use-id-from-create-response
+PUT {{baseUrl}}/api/applications/{{pfeId}}
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "Updated: Advanced Medical Image Analysis with Enhanced AI",
+        "supervisor_name": "Dr. Maria Elena Rodriguez (Updated)",
+        "company": "MedTech Solutions Inc (Updated)",
+        "academic_year": "2024-2025",
+        "specialization": "Computer Science - Advanced AI & Medical Imaging",
+        "objectives": "Updated objectives: Develop enhanced deep learning models with improved accuracy and real-time processing capabilities",
+        "methodology": "Updated methodology: Include latest AI techniques, advanced preprocessing, and clinical validation protocols",
+        "expected_outcomes": "Updated outcomes: Enhanced prototype with 98% accuracy, real-time processing, clinical deployment readiness"
+    }
+}
+
+###

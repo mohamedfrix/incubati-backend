@@ -1,0 +1,103 @@
+### Health Check and Utility Endpoints
+
+### Import variables
+@baseUrl = http://localhost:4001
+@contentType = application/json
+
+### 1. Health Check - Basic
+# @name healthCheck
+GET {{baseUrl}}/health
+Accept: application/json
+
+###
+
+### 2. Health Check - Verify Response Structure
+# @name healthCheckDetailed
+GET {{baseUrl}}/health
+Accept: application/json
+
+### Expected Response:
+# {
+#   "status": "healthy",
+#   "timestamp": "2025-07-03T10:00:00Z",
+#   "version": "1.0.0"
+# }
+
+###
+
+### 3. Health Check - Server Load Test
+# @name healthCheckLoadTest
+GET {{baseUrl}}/health
+Accept: application/json
+
+###
+
+GET {{baseUrl}}/health
+Accept: application/json
+
+###
+
+GET {{baseUrl}}/health
+Accept: application/json
+
+###
+
+GET {{baseUrl}}/health
+Accept: application/json
+
+###
+
+GET {{baseUrl}}/health
+Accept: application/json
+
+###
+
+### 4. Metrics Endpoint (if available)
+# @name metrics
+GET {{baseUrl}}/metrics
+Accept: application/json
+
+###
+
+### 5. Health Check - Invalid Method
+# @name healthCheckInvalidMethod
+POST {{baseUrl}}/health
+Content-Type: {{contentType}}
+
+{}
+
+###
+
+### 6. Health Check - With Query Parameters (should be ignored)
+# @name healthCheckWithParams
+GET {{baseUrl}}/health?test=value&invalid=param
+Accept: application/json
+
+###
+
+### 7. Health Check - Different Accept Headers
+# @name healthCheckTextPlain
+GET {{baseUrl}}/health
+Accept: text/plain
+
+###
+
+### 8. Health Check - No Accept Header
+# @name healthCheckNoAccept
+GET {{baseUrl}}/health
+
+###
+
+### 9. Root Endpoint Test (if available)
+# @name rootEndpoint
+GET {{baseUrl}}/
+Accept: application/json
+
+###
+
+### 10. Non-Existent Utility Endpoint
+# @name nonExistentUtility
+GET {{baseUrl}}/status
+Accept: application/json
+
+###

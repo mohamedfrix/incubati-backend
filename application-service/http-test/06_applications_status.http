@@ -1,0 +1,429 @@
+### Application Status Management - Comprehensive Tests
+
+@baseUrl = http://localhost:4001
+@contentType = application/json
+@testUserId = test-user-status
+@applicationId = f9445729-83a8-4245-b751-15b304771ff9
+
+### Setup: Create a test application for status transitions
+# @name createTestAppForStatus
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "Internship",
+    "status": "Brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Status Test Corp",
+        "position": "Test Engineer",
+        "duration_months": 6,
+        "start_date": "2025-09-01",
+        "supervisor_name": "Status Supervisor",
+        "supervisor_email": "status@testcorp.com",
+        "description": "Application for testing status transitions",
+        "requirements": "Testing skills required"
+    }
+}
+
+###
+
+### 1. Valid Status Transition: Draft to Pending
+# @name statusDraftToPending
+PATCH {{baseUrl}}/api/applications/{{applicationId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "EnAttente",
+    "feedback": "Application submitted for review"
+}
+
+###
+
+### 2. Valid Status Transition: Pending to Approved
+# @name statusPendingToApproved
+PATCH {{baseUrl}}/api/applications/{{applicationId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "Approuvee",
+    "feedback": "Application approved! Excellent qualifications and clear objectives. Welcome to the program."
+}
+
+###
+
+### 3. Create Another Test Application for Rejection Flow
+# @name createTestAppForRejection
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Rejection Test Project",
+        "business_model": "Test business model",
+        "target_market": "Test market",
+        "team_size": 2,
+        "project_stage": "Concept"
+    }
+}
+
+###
+
+### 4. Draft to Pending for Rejection Test
+# @name statusDraftToPendingReject
+@rejectionAppId = use-id-from-previous-response
+PATCH {{baseUrl}}/api/applications/{{rejectionAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "en_attente"
+}
+
+###
+
+### 5. Valid Status Transition: Pending to Rejected
+# @name statusPendingToRejected
+PATCH {{baseUrl}}/api/applications/{{rejectionAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "rejetee",
+    "feedback": "Unfortunately, your application does not meet our current criteria. The business model needs more development and market validation."
+}
+
+###
+
+### 6. Create Test Application for Changes Requested Flow
+# @name createTestAppForChanges
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "Changes Test Project",
+        "supervisor_name": "Prof. Changes",
+        "academic_year": "2024-2025",
+        "specialization": "Computer Science",
+        "objectives": "Test changes requested flow"
+    }
+}
+
+###
+
+### 7. Draft to Pending for Changes Test
+# @name statusDraftToPendingChanges
+@changesAppId = use-id-from-previous-response
+PATCH {{baseUrl}}/api/applications/{{changesAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "en_attente"
+}
+
+###
+
+### 8. Valid Status Transition: Pending to Changes Requested
+# @name statusPendingToChanges
+PATCH {{baseUrl}}/api/applications/{{changesAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "modification_demandee",
+    "feedback": "Please provide more details in the methodology section and clarify the expected outcomes. Also, include information about the technology stack you plan to use."
+}
+
+###
+
+### 9. Valid Status Transition: Changes Requested to Pending
+# @name statusChangesToPending
+PATCH {{baseUrl}}/api/applications/{{changesAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "en_attente",
+    "feedback": "Thank you for the additional information. Your application is back under review."
+}
+
+###
+
+### 10. Invalid Status Transition: Draft to Approved (Should Fail)
+# @name invalidStatusDraftToApproved
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Invalid Transition Corp",
+        "position": "Test Position",
+        "duration_months": 6,
+        "start_date": "2025-09-01"
+    }
+}
+
+# Get the ID from response, then try invalid transition
+@invalidTransitionId = use-id-from-previous-response
+PATCH {{baseUrl}}/api/applications/{{invalidTransitionId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "approuvee",
+    "feedback": "Attempting invalid transition from draft to approved"
+}
+
+###
+
+### 11. Invalid Status Transition: Approved to Pending (Should Fail)
+# @name invalidStatusApprovedToPending
+PATCH {{baseUrl}}/api/applications/{{applicationId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "en_attente",
+    "feedback": "Attempting to move approved application back to pending"
+}
+
+###
+
+### 12. Invalid Status Transition: Rejected to Approved (Should Fail)
+# @name invalidStatusRejectedToApproved
+PATCH {{baseUrl}}/api/applications/{{rejectionAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "approuvee",
+    "feedback": "Attempting to approve a rejected application"
+}
+
+###
+
+### 13. Invalid Status Value
+# @name invalidStatusValue
+PATCH {{baseUrl}}/api/applications/{{applicationId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "invalid_status",
+    "feedback": "Testing invalid status value"
+}
+
+###
+
+### 14. Status Update with Empty Feedback
+# @name statusUpdateEmptyFeedback
+PATCH {{baseUrl}}/api/applications/{{changesAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "en_attente",
+    "feedback": ""
+}
+
+###
+
+### 15. Status Update with No Feedback
+# @name statusUpdateNoFeedback
+PATCH {{baseUrl}}/api/applications/{{changesAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "en_attente"
+}
+
+###
+
+### 16. Status Update with Very Long Feedback
+# @name statusUpdateLongFeedback
+PATCH {{baseUrl}}/api/applications/{{changesAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "modification_demandee",
+    "feedback": "This is a very long feedback message that tests the maximum length allowed for feedback fields in the status update system. The feedback provides detailed information about required changes including technical specifications, additional documentation needs, clarification of objectives, improvement suggestions for methodology, enhancement recommendations for expected outcomes, formatting requirements, submission guidelines, review criteria, evaluation standards, and comprehensive feedback on all aspects of the application that need to be addressed before final approval can be granted."
+}
+
+###
+
+### 17. Status Update for Non-Existent Application
+# @name statusUpdateNonExistent
+@nonExistentId = 00000000-0000-0000-0000-000000000000
+PATCH {{baseUrl}}/api/applications/{{nonExistentId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "en_attente",
+    "feedback": "Attempting to update status of non-existent application"
+}
+
+###
+
+### 18. Status Update with Invalid UUID Format
+# @name statusUpdateInvalidUuid
+PATCH {{baseUrl}}/api/applications/invalid-uuid-format/status
+Content-Type: {{contentType}}
+
+{
+    "status": "en_attente",
+    "feedback": "Testing invalid UUID format"
+}
+
+###
+
+### 19. Status Update with Missing Required Fields
+# @name statusUpdateMissingFields
+PATCH {{baseUrl}}/api/applications/{{applicationId}}/status
+Content-Type: {{contentType}}
+
+{
+    "feedback": "Missing status field"
+}
+
+###
+
+### 20. Status Update with Special Characters in Feedback
+# @name statusUpdateSpecialChars
+PATCH {{baseUrl}}/api/applications/{{changesAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "modification_demandee",
+    "feedback": "Feedback with special characters: éàèùâêîôûç, emojis: 🎯📝✅❌, symbols: @#$%^&*()+=[]{}|;:'\",.<>?/~`, and international text: 中文评价, تقييم عربي, русская оценка"
+}
+
+###
+
+### 21. Multiple Rapid Status Updates (Race Condition Test)
+# @name rapidStatusUpdate1
+PATCH {{baseUrl}}/api/applications/{{changesAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "en_attente",
+    "feedback": "First rapid update"
+}
+
+###
+
+# @name rapidStatusUpdate2
+PATCH {{baseUrl}}/api/applications/{{changesAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "modification_demandee",
+    "feedback": "Second rapid update"
+}
+
+###
+
+# @name rapidStatusUpdate3
+PATCH {{baseUrl}}/api/applications/{{changesAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "en_attente",
+    "feedback": "Third rapid update"
+}
+
+###
+
+### 22. Get Application After Status Changes to Verify History
+# @name getAppAfterStatusChanges
+GET {{baseUrl}}/api/applications/{{changesAppId}}
+Accept: {{contentType}}
+
+###
+
+### 23. Status Transition with Wrong HTTP Method
+# @name statusUpdateWrongMethod
+PUT {{baseUrl}}/api/applications/{{applicationId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "en_attente",
+    "feedback": "Using PUT instead of PATCH"
+}
+
+###
+
+### 24. Status Update with Invalid Content-Type
+# @name statusUpdateInvalidContentType
+PATCH {{baseUrl}}/api/applications/{{applicationId}}/status
+Content-Type: text/plain
+
+{
+    "status": "en_attente",
+    "feedback": "Testing invalid content type"
+}
+
+###
+
+### 25. Complete Status Lifecycle Test
+# @name createAppForLifecycle
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Lifecycle Test Corp",
+        "position": "Full Lifecycle Tester",
+        "duration_months": 6,
+        "start_date": "2025-09-01"
+    }
+}
+
+# Follow up with complete lifecycle: Draft → Pending → Changes → Pending → Approved
+@lifecycleAppId = use-id-from-previous-response
+
+### Step 1: Draft to Pending
+PATCH {{baseUrl}}/api/applications/{{lifecycleAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "en_attente",
+    "feedback": "Lifecycle test: Moving to pending"
+}
+
+### Step 2: Pending to Changes Requested
+PATCH {{baseUrl}}/api/applications/{{lifecycleAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "modification_demandee",
+    "feedback": "Lifecycle test: Requesting changes"
+}
+
+### Step 3: Changes Requested to Pending
+PATCH {{baseUrl}}/api/applications/{{lifecycleAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "en_attente",
+    "feedback": "Lifecycle test: Changes made, back to pending"
+}
+
+### Step 4: Pending to Approved
+PATCH {{baseUrl}}/api/applications/{{lifecycleAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "approuvee",
+    "feedback": "Lifecycle test: Final approval granted"
+}
+
+###

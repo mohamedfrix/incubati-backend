@@ -1,0 +1,226 @@
+### Variables (Update these tokens after successful authentication)
+@admin_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjYmI4ZjI5ZC0wYzNmLTQ4YTEtOWFkMi0xOGNhZTIxNGQ0ZTYiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzUxNjU2MzU3fQ.j_45PkO0zA4MEZMyRC9n8qkEE8Cz8t5I9XPa6ZohgtM
+@encadrant_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI5ZjNhYzkwNi0xOGFiLTQ2N2UtODUxMC1jYjFmOGM1OWYyODAiLCJlbWFpbCI6Im5ld2VuY2FkcmFudEBleGFtcGxlLmNvbSIsInJvbGUiOiJlbmNhZHJhbnQiLCJleHAiOjE3NTE2NDY2NjN9.vMCr83Jnx14L6uad0q55HBJD10k3XTZa5kDO2755QIc
+@user_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4Zjc4YjBjZC0xYzJjLTQwMjgtOWU3My0wMmRlYmY0Mzc1ZmMiLCJlbWFpbCI6Im5ld3N0dWRlbnRAZXhhbXBsZS5jb20iLCJyb2xlIjoiZXR1ZGlhbnQiLCJleHAiOjE3NTE2NTYzNzl9.7STtjNhDqONBx2zGVtoAJrJKGTVDA3IMmR7BC1V4TLk
+@refresh_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjYmI4ZjI5ZC0wYzNmLTQ4YTEtOWFkMi0xOGNhZTIxNGQ0ZTYiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzU0MjM4MTI4fQ.-Qcy2axQ5nb5u5za2K1SBIZxP6cSk-6dm9tQXLZ8l6w
+
+### =============================================================================
+### AUTHENTICATION TESTS - API Gateway (Port 4000)
+### =============================================================================
+
+### 1. Login as Admin (Get admin token first)
+POST http://localhost:4000/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "adminpassword"
+}
+
+### 2. Login as Encadrant
+POST http://localhost:4000/auth/login
+Content-Type: application/json
+
+{
+  "email": "encadrant@example.com",
+  "password": "encadrant123"
+}
+
+### 3. Login as Student
+POST http://localhost:4000/auth/login
+Content-Type: application/json
+
+{
+  "email": "newstudent@example.com",
+  "password": "SecurePass123!"
+}
+
+## Login As Incube
+POST http://localhost:4000/auth/login
+Content-Type: application/json
+
+{
+  "email": "newincube@example.com",
+  "password": "SecurePass123!"
+}
+
+
+
+### 4. Login with Invalid Credentials
+POST http://localhost:4000/auth/login
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com",
+  "password": "wrongpassword"
+}
+
+### 5. Login with Missing Fields
+POST http://localhost:4000/auth/login
+Content-Type: application/json
+
+{
+  "email": "",
+  "password": ""
+}
+
+### 6. Login As Encadrant
+POST http://localhost:4000/auth/login
+Content-Type: application/json
+
+{
+  "email": "newencadrant@example.com",
+  "password": "SecurePass123!"
+}
+
+### =============================================================================
+### USER REGISTRATION (Requires Admin/Encadrant Authentication)
+### =============================================================================
+
+### 6. Register New Student (Admin)
+POST http://localhost:4000/auth/register
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "email": "newstudent@example.com",
+  "password": "SecurePass123!",
+  "nom": "Nouveau",
+  "prenom": "Etudiant",
+  "role": "Etudiant"
+}
+
+### 7. Register New Encadrant (Admin)
+POST http://localhost:4000/auth/register
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "email": "newencadrant@example.com",
+  "password": "SecurePass123!",
+  "nom": "Nouveau",
+  "prenom": "Encadrant",
+  "role": "Encadrant"
+}
+
+### 8. Register New Admin (Admin)
+POST http://localhost:4000/auth/register
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "email": "newadmin@example.com",
+  "password": "SecurePass123!",
+  "nom": "Nouveau",
+  "prenom": "Admin",
+  "role": "Admin"
+}
+
+### 9. Register New Incubé (Admin)
+POST http://localhost:4000/auth/register
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "email": "newincube@example.com",
+  "password": "SecurePass123!",
+  "nom": "Nouveau",
+  "prenom": "Incube",
+  "role": "Incube"
+}
+
+### 10. Register with Invalid Role
+POST http://localhost:4000/auth/register
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "email": "invalidrole@example.com",
+  "password": "SecurePass123!",
+  "nom": "Invalid",
+  "prenom": "Role",
+  "role": "InvalidRole"
+}
+
+### 11. Register without Authentication (Should Fail)
+POST http://localhost:4000/auth/register
+Content-Type: application/json
+
+{
+  "email": "unauthorized@example.com",
+  "password": "SecurePass123!",
+  "nom": "Unauthorized",
+  "prenom": "User",
+  "role": "Etudiant"
+}
+
+### 12. Register with Student Token (Should Fail - Permission Denied)
+POST http://localhost:4000/auth/register
+Content-Type: application/json
+Authorization: Bearer {{user_token}}
+
+{
+  "email": "shouldfail@example.com",
+  "password": "SecurePass123!",
+  "nom": "Should",
+  "prenom": "Fail",
+  "role": "Etudiant"
+}
+
+### =============================================================================
+### TOKEN MANAGEMENT
+### =============================================================================
+
+### 13. Verify Token (Valid)
+POST http://localhost:4000/auth/verify-token
+Authorization: Bearer {{user_token}}
+
+### 14. Verify Token (Invalid)
+POST http://localhost:4000/auth/verify-token
+Authorization: Bearer invalid_token_here
+
+### 15. Verify Token (Missing Authorization Header)
+POST http://localhost:4000/auth/verify-token
+
+### 16. Refresh Token (Valid)
+POST http://localhost:4000/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refresh_token": "{{refresh_token}}"
+}
+
+### 17. Refresh Token (Invalid)
+POST http://localhost:4000/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refresh_token": "invalid_refresh_token_here"
+}
+
+### 18. Refresh Token (Missing Token)
+POST http://localhost:4000/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refresh_token": ""
+}
+
+### =============================================================================
+### USER MANAGEMENT
+### =============================================================================
+
+### 19. List Users (Admin)
+GET http://localhost:4000/auth/users
+Authorization: Bearer {{admin_token}}
+
+### 20. List Users (Encadrant)
+GET http://localhost:4000/auth/users
+Authorization: Bearer {{encadrant_token}}
+
+### 21. List Users (Student - Should Fail)
+GET http://localhost:4000/auth/users
+Authorization: Bearer {{user_token}}
+
+### 22. List Users (Unauthorized)
+GET http://localhost:4000/auth/users 

@@ -1,0 +1,575 @@
+### Document Management - Upload, Download, and Management Tests
+
+@baseUrl = http://localhost:4001
+@contentType = application/json
+@multipartType = multipart/form-data
+@testUserId = document-test-user
+
+### Test files (create these files in test_files/ directory for actual testing)
+@testPdfFile = test_files/sample_document.pdf
+@testImageFile = test_files/sample_image.jpg
+@testTextFile = test_files/sample_text.txt
+@largePdfFile = test_files/large_document.pdf
+
+### Setup: Create test application for document uploads
+# @name createAppForDocuments
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Document Test Corp",
+        "position": "Document Manager",
+        "duration_months": 6,
+        "start_date": "2025-09-01",
+        "supervisor_name": "Doc Supervisor",
+        "supervisor_email": "docs@testcorp.com",
+        "description": "Application for testing document management",
+        "requirements": "Document handling skills"
+    }
+}
+
+@documentTestAppId = use-id-from-response
+
+###
+
+### 1. Upload PDF Document - Valid
+# @name uploadValidPdf
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="resume.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 44
+>>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+(Sample PDF Document) Tj
+ET
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000208 00000 n 
+trailer
+<<
+/Size 5
+/Root 1 0 R
+>>
+startxref
+296
+%%EOF
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+resume
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 2. Upload Image Document - Valid
+# @name uploadValidImage
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="profile_photo.jpg"
+Content-Type: image/jpeg
+
+/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/wA8=
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+photo
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 3. Upload Text Document - Valid
+# @name uploadValidText
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="cover_letter.txt"
+Content-Type: text/plain
+
+Dear Hiring Manager,
+
+I am writing to express my strong interest in the internship position at your company.
+
+This is a sample cover letter for testing document upload functionality.
+
+Best regards,
+Test Applicant
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+cover_letter
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 4. Get Documents for Application
+# @name getDocuments
+GET {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Accept: {{contentType}}
+
+###
+
+### 5. Download Document - Get Download URL
+# @name downloadDocument
+@documentId = use-id-from-upload-response
+GET {{baseUrl}}/api/documents/{{documentId}}/download
+
+###
+
+### 6. Upload Document - Missing File
+# @name uploadMissingFile
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+missing_file
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 7. Upload Document - Missing Document Type
+# @name uploadMissingDocType
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="no_type.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Sample PDF content
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 8. Upload Document - Empty File
+# @name uploadEmptyFile
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="empty.pdf"
+Content-Type: application/pdf
+
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+empty
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 9. Upload Document - Very Long Filename
+# @name uploadLongFilename
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="very_long_filename_that_exceeds_normal_limits_and_tests_the_maximum_allowed_length_for_filenames_in_the_document_upload_system_with_additional_characters_to_make_it_even_longer.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Sample content for long filename test
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+long_filename
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 10. Upload Document - Special Characters in Filename
+# @name uploadSpecialCharsFilename
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="spëcïål_fïlë_ñämë_éàèù@#$%^&*()+=[]{}|;:'\",.<>?/~`.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Content with special characters in filename
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+special_chars
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 11. Upload Document - Potentially Malicious File Extension
+# @name uploadMaliciousExtension
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="malicious.exe"
+Content-Type: application/octet-stream
+
+This is not actually an executable, just testing file extension validation
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+executable
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 12. Upload Document - Invalid Content Type
+# @name uploadInvalidContentType
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="document.pdf"
+Content-Type: application/invalid-type
+
+Sample content with invalid MIME type
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+invalid_type
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 13. Upload to Non-Existent Application
+# @name uploadNonExistentApp
+@nonExistentAppId = 00000000-0000-0000-0000-000000000000
+POST {{baseUrl}}/api/applications/{{nonExistentAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="test.pdf"
+Content-Type: application/pdf
+
+Sample PDF content
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+test
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 14. Upload with Invalid Application ID Format
+# @name uploadInvalidAppId
+POST {{baseUrl}}/api/applications/invalid-uuid-format/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="test.pdf"
+Content-Type: application/pdf
+
+Sample PDF content
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+test
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 15. Download Non-Existent Document
+# @name downloadNonExistentDoc
+@nonExistentDocId = 00000000-0000-0000-0000-000000000000
+GET {{baseUrl}}/api/documents/{{nonExistentDocId}}/download
+
+###
+
+### 16. Download with Invalid Document ID Format
+# @name downloadInvalidDocId
+GET {{baseUrl}}/api/documents/invalid-uuid-format/download
+
+###
+
+### 17. Delete Document - Valid
+# @name deleteDocument
+@documentId = use-id-from-upload-response
+DELETE {{baseUrl}}/api/documents/{{documentId}}
+
+###
+
+### 18. Delete Non-Existent Document
+# @name deleteNonExistentDoc
+DELETE {{baseUrl}}/api/documents/{{nonExistentDocId}}
+
+###
+
+### 19. Delete Document with Invalid ID Format
+# @name deleteInvalidDocId
+DELETE {{baseUrl}}/api/documents/invalid-uuid-format
+
+###
+
+### 20. Get Documents After Deletion
+# @name getDocumentsAfterDeletion
+GET {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Accept: {{contentType}}
+
+###
+
+### 21. Download Deleted Document (Should Fail)
+# @name downloadDeletedDoc
+GET {{baseUrl}}/api/documents/{{documentId}}/download
+
+###
+
+### 22. Upload Large File (Test Size Limits)
+# @name uploadLargeFile
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="large_document.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Large file content simulation - this would be much larger in real testing.
+This content is repeated multiple times to simulate a large file.
+[Content would be repeated many times to reach size limits]
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+large_file
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 23. Upload Multiple Documents of Same Type
+# @name uploadMultipleSameType
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="resume_v2.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Updated resume content
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+resume
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 24. Upload Document - Different Document Types
+# @name uploadTranscript
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="transcript.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Academic transcript content
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+transcript
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+# @name uploadCertificate
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="certificate.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Certificate content
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+certificate
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+# @name uploadPortfolio
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="portfolio.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Portfolio content
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+portfolio
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 25. Get All Documents After Multiple Uploads
+# @name getAllDocumentsAfterUploads
+GET {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Accept: {{contentType}}
+
+###
+
+### 26. Upload with Wrong HTTP Method
+# @name uploadWrongMethod
+PUT {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="wrong_method.pdf"
+Content-Type: application/pdf
+
+Testing wrong HTTP method
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+wrong_method
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 27. Upload with Invalid Content-Type Header
+# @name uploadInvalidHeader
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: application/json
+
+{
+    "file": "This should be multipart/form-data",
+    "document_type": "invalid_header"
+}
+
+###
+
+### 28. Upload Document with No Filename
+# @name uploadNoFilename
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"
+Content-Type: application/pdf
+
+Content without filename
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+no_filename
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 29. Rapid Multiple Uploads (Concurrency Test)
+# @name rapidUpload1
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="rapid1.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Rapid upload test 1
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+rapid1
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+# @name rapidUpload2
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="rapid2.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Rapid upload test 2
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+rapid2
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+# @name rapidUpload3
+POST {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="rapid3.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Rapid upload test 3
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+rapid3
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### 30. Final Document Count Verification
+# @name finalDocumentCount
+GET {{baseUrl}}/api/applications/{{documentTestAppId}}/documents
+Accept: {{contentType}}
+
+###

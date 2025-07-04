@@ -1,0 +1,216 @@
+### Applications CRUD Operations
+
+@baseUrl = http://localhost:4001
+@contentType = application/json
+@testUserId = test-user-123
+
+### 1. Create Internship Application - Valid
+# @name createInternshipApp
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "Internship",
+    "status": "Brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "TechCorp Solutions",
+        "position": "Software Developer Intern",
+        "duration_months": 6,
+        "start_date": "2025-09-01",
+        "supervisor_name": "John Smith",
+        "supervisor_email": "john.smith@techcorp.com",
+        "description": "Full-stack development internship focusing on React and Node.js",
+        "requirements": "Knowledge of JavaScript, React, Node.js. Basic understanding of databases."
+    }
+}
+
+###
+
+### 2. Create Incubation Application - Valid
+# @name createIncubationApp
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "Incubation",
+    "status": "Brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "EcoTech Startup",
+        "business_model": "B2B SaaS platform for environmental monitoring",
+        "target_market": "Small to medium enterprises in manufacturing",
+        "funding_amount": 50000.00,
+        "team_size": 3,
+        "project_stage": "MVP Development",
+        "description": "AI-powered environmental monitoring solution for industrial applications"
+    }
+}
+
+###
+
+### 3. Create PFE Application - Valid
+# @name createPfeApp
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "Pfe",
+    "status": "Brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "Machine Learning for Predictive Maintenance",
+        "supervisor_name": "Dr. Sarah Johnson",
+        "company": "Industrial Solutions Inc",
+        "academic_year": "2024-2025",
+        "specialization": "Computer Science - AI",
+        "objectives": "Develop ML models for predictive maintenance in industrial equipment",
+        "methodology": "Data collection, feature engineering, model training and validation",
+        "expected_outcomes": "Working prototype with 85% accuracy in failure prediction"
+    }
+}
+
+###
+
+### 4. Get Application by ID - Valid (use ID from previous create)
+# @name getApplicationById
+@applicationId = 466c4f90-dc86-44f5-bd3e-6934d218df98
+GET {{baseUrl}}/api/applications/{{applicationId}}
+Accept: {{contentType}}
+
+###
+
+### 5. Update Application - Valid
+# @name updateApplication
+@applicationId = 3b0f01f1-f4c5-40dc-8222-580351313c1b
+PUT {{baseUrl}}/api/applications/{{applicationId}}
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "Internship",
+    "status": "Brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "TechCorp Solutions (Updated)",
+        "position": "Senior Software Developer Intern",
+        "duration_months": 8,
+        "start_date": "2025-09-01",
+        "supervisor_name": "John Smith",
+        "supervisor_email": "john.smith@techcorp.com",
+        "description": "Updated: Full-stack development internship with focus on microservices",
+        "requirements": "Updated: Advanced JavaScript, React, Node.js, Docker knowledge required"
+    }
+}
+
+###
+
+### 6. Delete Application - Valid
+# @name deleteApplication
+@applicationId = 3b0f01f1-f4c5-40dc-8222-580351313c1b
+DELETE {{baseUrl}}/api/applications/{{applicationId}}
+
+###
+
+### 7. Get Deleted Application - Should Return 404
+# @name getDeletedApplication
+@applicationId = 3b0f01f1-f4c5-40dc-8222-580351313c1b
+GET {{baseUrl}}/api/applications/{{applicationId}}
+Accept: {{contentType}}
+
+###
+
+### 8. Create Application - Minimal Valid Data
+# @name createMinimalApp
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "Internship",
+    "status": "Brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "MinimalCorp",
+        "position": "Intern",
+        "duration_months": 1,
+        "start_date": "2025-07-01"
+    }
+}
+
+###
+
+### 9. Create Application - Maximum Valid Data
+# @name createMaximalApp
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "Incubation",
+    "status": "Brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Advanced AI Platform for Complex Business Solutions",
+        "business_model": "Multi-tier SaaS platform with B2B, B2C, and enterprise solutions including AI-powered analytics, machine learning models, and automated decision-making systems",
+        "target_market": "Large enterprises, government agencies, and multinational corporations in technology, finance, healthcare, and manufacturing sectors",
+        "funding_amount": 999999.99,
+        "team_size": 50,
+        "project_stage": "Series A Funding",
+        "description": "Comprehensive AI platform that integrates multiple machine learning models, natural language processing, computer vision, and predictive analytics to provide end-to-end business intelligence solutions for complex organizational challenges"
+    }
+}
+
+###
+
+### 10. Update Non-Existent Application
+# @name updateNonExistentApp
+@nonExistentId = 00000000-0000-0000-0000-000000000000
+PUT {{baseUrl}}/api/applications/{{nonExistentId}}
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "NonExistent Corp",
+        "position": "Developer",
+        "duration_months": 6,
+        "start_date": "2025-09-01"
+    }
+}
+
+###
+
+### 11. Get Application with Invalid UUID Format
+# @name getInvalidUuid
+GET {{baseUrl}}/api/applications/invalid-uuid-format
+Accept: {{contentType}}
+
+###
+
+### 12. Create Application with Different User
+# @name createAppDifferentUser
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "different-user-456",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "Blockchain for Supply Chain",
+        "supervisor_name": "Prof. Alice Brown",
+        "academic_year": "2024-2025",
+        "specialization": "Computer Science - Blockchain",
+        "objectives": "Implement blockchain solution for supply chain transparency"
+    }
+}
+
+###

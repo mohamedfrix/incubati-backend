@@ -1,0 +1,55 @@
+# Sample Text File for Testing
+
+This is a plain text file for testing document upload functionality.
+
+**Purpose:** Test text file uploads and handling of different content types.
+
+**Content:**
+
+Dear Hiring Manager,
+
+I am writing to express my strong interest in the internship position at your company. 
+
+My background in computer science and experience with modern web technologies make me a strong candidate for this role.
+
+**Technical Skills:**
+- Programming Languages: JavaScript, Python, Java, C++
+- Web Technologies: HTML, CSS, React, Node.js, Express
+- Databases: PostgreSQL, MongoDB, Redis
+- Tools: Git, Docker, VS Code, Linux
+- Cloud: AWS, Azure basics
+
+**Academic Projects:**
+1. E-commerce Platform - Full-stack web application with user authentication, product catalog, and payment processing
+2. Task Management App - React-based application with real-time updates and team collaboration features
+3. Data Visualization Tool - Python application for analyzing and visualizing large datasets
+
+**Why I'm Interested:**
+Your company's focus on innovative solutions and commitment to using cutting-edge technologies aligns perfectly with my career goals. I am particularly excited about the opportunity to work on real-world projects and learn from experienced developers.
+
+**Availability:**
+I am available for a full-time internship starting September 2025 and can commit to the full duration of the program.
+
+Thank you for considering my application. I look forward to the opportunity to discuss how my skills and enthusiasm can contribute to your team.
+
+Best regards,
+John Doe
+
+**Contact Information:**
+Email: john.doe@email.com
+Phone: +1-555-0123
+LinkedIn: linkedin.com/in/johndoe
+GitHub: github.com/johndoe
+
+---
+
+**Test Scenarios:**
+- Text file upload validation
+- Content-type handling
+- File size verification
+- Character encoding testing
+- Special characters: éàèùâêîôûç, 中文, العربية, русский
+- Symbols: @#$%^&*()+=[]{}|;:'\",.<>?/~`
+- Emojis: 🚀💻🎯📝✅❌🌟🔧📊
+
+*This file is used for automated testing of the document upload API.*

@@ -5,4 +5,5 @@ pub mod seeder;
 pub mod middleware;
 pub mod service;
 pub mod dto;
-pub mod repository; 
+pub mod repository;
+pub mod grpc_client; 

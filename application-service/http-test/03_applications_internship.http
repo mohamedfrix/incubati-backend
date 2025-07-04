@@ -1,0 +1,321 @@
+### Internship Applications - Comprehensive Tests
+
+@baseUrl = http://localhost:4001
+@contentType = application/json
+@testUserId = test-user-internship
+
+### 1. Create Internship Application - Complete Data
+# @name createFullInternship
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "Internship",
+    "status": "Brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Google Inc",
+        "position": "Software Engineering Intern",
+        "duration_months": 12,
+        "start_date": "2025-06-01",
+        "supervisor_name": "Jane Doe",
+        "supervisor_email": "jane.doe@google.com",
+        "description": "Work on large-scale distributed systems, contribute to open-source projects, and learn from senior engineers in a collaborative environment.",
+        "requirements": "Strong programming skills in Python/Java, understanding of algorithms and data structures, experience with version control systems"
+    }
+}
+
+###
+
+### 2. Create Internship Application - Minimal Required Fields
+# @name createMinimalInternship
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "StartupCorp",
+        "position": "Developer Intern",
+        "duration_months": 3,
+        "start_date": "2025-07-15"
+    }
+}
+
+###
+
+### 3. Create Internship Application - Edge Case: Long Duration
+# @name createLongDurationInternship
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Research Institute",
+        "position": "Research Intern",
+        "duration_months": 18,
+        "start_date": "2025-09-01",
+        "supervisor_name": "Dr. Research Leader",
+        "supervisor_email": "research@institute.edu",
+        "description": "Long-term research internship for advanced projects",
+        "requirements": "PhD student or advanced Master's degree"
+    }
+}
+
+###
+
+### 4. Create Internship Application - Edge Case: Short Duration
+# @name createShortDurationInternship
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "QuickTech",
+        "position": "Summer Intern",
+        "duration_months": 1,
+        "start_date": "2025-08-01",
+        "supervisor_name": "Quick Supervisor",
+        "supervisor_email": "quick@quicktech.com",
+        "description": "Intensive summer program",
+        "requirements": "Available for full-time commitment"
+    }
+}
+
+###
+
+### 5. Create Internship Application - Past Start Date
+# @name createPastDateInternship
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "PastCorp",
+        "position": "Backend Intern",
+        "duration_months": 6,
+        "start_date": "2024-01-01",
+        "supervisor_name": "Past Supervisor",
+        "supervisor_email": "past@pastcorp.com",
+        "description": "Retroactive internship application",
+        "requirements": "Already completed work"
+    }
+}
+
+###
+
+### 6. Create Internship Application - Future Start Date (Far Future)
+# @name createFarFutureInternship
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "FutureTech 2030",
+        "position": "AI Intern",
+        "duration_months": 6,
+        "start_date": "2030-01-01",
+        "supervisor_name": "Future AI Leader",
+        "supervisor_email": "ai@futuretech2030.com",
+        "description": "Advanced AI research internship",
+        "requirements": "Advanced AI and ML knowledge"
+    }
+}
+
+###
+
+### 7. Create Internship Application - Invalid Email Format
+# @name createInvalidEmailInternship
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "EmailTest Corp",
+        "position": "Intern",
+        "duration_months": 6,
+        "start_date": "2025-09-01",
+        "supervisor_name": "Invalid Email Supervisor",
+        "supervisor_email": "invalid-email-format",
+        "description": "Testing email validation",
+        "requirements": "Valid email handling"
+    }
+}
+
+###
+
+### 8. Create Internship Application - Missing Required Fields
+# @name createMissingFieldsInternship
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Incomplete Corp",
+        "duration_months": 6,
+        "start_date": "2025-09-01"
+    }
+}
+
+###
+
+### 9. Create Internship Application - Invalid Duration (Zero)
+# @name createZeroDurationInternship
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Zero Duration Corp",
+        "position": "Instant Intern",
+        "duration_months": 0,
+        "start_date": "2025-09-01"
+    }
+}
+
+###
+
+### 10. Create Internship Application - Invalid Duration (Negative)
+# @name createNegativeDurationInternship
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Negative Corp",
+        "position": "Time Travel Intern",
+        "duration_months": -6,
+        "start_date": "2025-09-01"
+    }
+}
+
+###
+
+### 11. Create Internship Application - Invalid Date Format
+# @name createInvalidDateInternship
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Invalid Date Corp",
+        "position": "Date Intern",
+        "duration_months": 6,
+        "start_date": "invalid-date-format"
+    }
+}
+
+###
+
+### 12. Create Internship Application - Very Long Text Fields
+# @name createLongTextInternship
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Very Long Company Name That Exceeds Normal Limits And Tests Field Length Validation Systems",
+        "position": "Very Long Position Title That Tests The Maximum Length Allowed For Position Names In The System",
+        "duration_months": 6,
+        "start_date": "2025-09-01",
+        "supervisor_name": "Very Long Supervisor Name That Tests The Maximum Length Allowed For Supervisor Names",
+        "supervisor_email": "very.long.email.address.that.tests.maximum.length@very.long.domain.name.example.com",
+        "description": "This is a very long description that tests the maximum length allowed for description fields in the system. It contains detailed information about the internship, including objectives, daily tasks, learning outcomes, project details, team structure, company culture, technology stack, development methodologies, and expected deliverables. The description continues to provide comprehensive information about the internship opportunity to test field length validation.",
+        "requirements": "This is a very long requirements field that tests the maximum length allowed for requirements in the system. It includes detailed technical requirements, educational background, programming languages, frameworks, tools, soft skills, experience levels, certifications, portfolio requirements, and other qualifications needed for the internship position."
+    }
+}
+
+###
+
+### 13. Create Internship Application - Special Characters in Text
+# @name createSpecialCharsInternship
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Spëcïål Çhäräctërs Corp™",
+        "position": "Software Developer & AI Engineer (Full-Stack)",
+        "duration_months": 6,
+        "start_date": "2025-09-01",
+        "supervisor_name": "José María García-Rodriguez",
+        "supervisor_email": "jose.maria@specialchars.com",
+        "description": "Work with special characters: éàèùâêîôûç, emojis: 🚀💻🎯, and symbols: @#$%^&*()+=[]{}|;:'\",.<>?/~`",
+        "requirements": "Unicode support, UTF-8 encoding, special characters handling: αβγδε, 中文, العربية, русский"
+    }
+}
+
+###
+
+### 14. Update Existing Internship Application
+# @name updateInternshipApp
+@internshipId = use-id-from-create-response
+PUT {{baseUrl}}/api/applications/{{internshipId}}
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Updated Company Name",
+        "position": "Updated Position Title",
+        "duration_months": 9,
+        "start_date": "2025-10-01",
+        "supervisor_name": "Updated Supervisor",
+        "supervisor_email": "updated@company.com",
+        "description": "Updated description with new information",
+        "requirements": "Updated requirements and qualifications"
+    }
+}
+
+###

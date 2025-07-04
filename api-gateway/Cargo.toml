@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-axum = "0.7"
+axum = { version = "0.7.9", features = ["multipart"] }
 tokio = { version = "1.37", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
@@ -20,6 +20,9 @@ uuid = { version = "1.8", features = ["serde", "v4"] }
 rand = "0.8"
 rand_core = "0.6"
 password-hash = "0.5"
+tonic = "0.10"
+prost = "0.12"
+prost-types = "0.12"
 
 [[bin]]
 name = "server"
@@ -28,3 +31,7 @@ path = "src/main.rs"
 [[bin]]
 name = "seeder"
 path = "src/bin/seeder.rs"
+
+[build-dependencies]
+tonic-build = "0.10"
+prost-build = "0.12"

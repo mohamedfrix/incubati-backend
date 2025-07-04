@@ -1,0 +1,29 @@
+### Environment Variables
+@baseUrl = http://localhost:8080
+@apiVersion = api
+@testUserId = test-user-123
+@testUserId2 = test-user-456
+@adminUserId = admin-user-789
+
+### Common Headers
+@contentType = application/json
+@multipartType = multipart/form-data
+
+### Test Data
+@validEmail = test@example.com
+@invalidEmail = invalid-email
+@futureDate = 2025-09-01
+@pastDate = 2024-01-01
+@invalidDate = invalid-date
+
+### File Paths (update these to match your system)
+@testPdfFile = ./test_files/sample_document.pdf
+@testImageFile = ./test_files/sample_image.jpg
+@largePdfFile = ./test_files/large_document.pdf
+
+### Dynamic Variables (will be set from responses)
+# @applicationId = set from create application response
+# @documentId = set from upload document response
+# @internshipId = set from create internship response
+# @incubationId = set from create incubation response
+# @pfeId = set from create pfe response

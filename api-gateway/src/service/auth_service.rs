@@ -32,11 +32,8 @@ impl AuthService {
         info!(email = %dto.email, role = ?dto.role, creator_id = %creator.id, "Registering new user");
         match creator.role {
             Role::Admin => {
-                if dto.role == Role::Admin {
-                    warn!(creator_id = %creator.id, "Admin attempted to create another admin");
-                    error!("Admins cannot create other admins");
-                    return Err("Admins cannot create other admins".into());
-                }
+                // Allow admins to create any role, including other admins
+                // (Previously, this block prevented admin creation by admins)
             },
             Role::Encadrant => {
                 if dto.role != Role::Etudiant && dto.role != Role::Incube {

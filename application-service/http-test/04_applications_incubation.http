@@ -1,0 +1,344 @@
+### Incubation Applications - Comprehensive Tests
+
+@baseUrl = http://localhost:8080
+@contentType = application/json
+@testUserId = test-user-incubation
+
+### 1. Create Incubation Application - Complete Data
+# @name createFullIncubation
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "EcoSmart Recycling Platform",
+        "business_model": "B2B SaaS platform connecting businesses with recycling facilities through AI-powered waste classification and route optimization",
+        "target_market": "Small to medium enterprises, municipal waste management, recycling facilities, and environmentally conscious corporations",
+        "funding_amount": 150000.00,
+        "team_size": 5,
+        "project_stage": "MVP Complete",
+        "description": "Revolutionary platform that uses computer vision and machine learning to optimize waste sorting and recycling processes, reducing environmental impact while increasing profitability for businesses."
+    }
+}
+
+###
+
+### 2. Create Incubation Application - Minimal Required Fields
+# @name createMinimalIncubation
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "MinimalTech",
+        "business_model": "Simple SaaS",
+        "target_market": "SMBs",
+        "team_size": 1,
+        "project_stage": "Idea"
+    }
+}
+
+###
+
+### 3. Create Incubation Application - High Funding Amount
+# @name createHighFundingIncubation
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Global AI Platform",
+        "business_model": "Enterprise AI solutions with global reach and multi-tier service offerings",
+        "target_market": "Fortune 500 companies, government agencies, large corporations worldwide",
+        "funding_amount": 5000000.00,
+        "team_size": 25,
+        "project_stage": "Series A Ready",
+        "description": "Comprehensive AI platform for enterprise-level automation and decision-making systems"
+    }
+}
+
+###
+
+### 4. Create Incubation Application - Solo Entrepreneur
+# @name createSoloIncubation
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Solo Developer Tools",
+        "business_model": "Freemium developer productivity tools with premium features",
+        "target_market": "Individual developers, freelancers, small development teams",
+        "funding_amount": 25000.00,
+        "team_size": 1,
+        "project_stage": "Beta Testing",
+        "description": "Specialized tools for solo developers to increase productivity and code quality"
+    }
+}
+
+###
+
+### 5. Create Incubation Application - Large Team
+# @name createLargeTeamIncubation
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Enterprise Solutions Hub",
+        "business_model": "Multi-product enterprise software suite with modular architecture",
+        "target_market": "Large enterprises, multinational corporations, government institutions",
+        "funding_amount": 2000000.00,
+        "team_size": 50,
+        "project_stage": "Product Development",
+        "description": "Comprehensive enterprise solution with multiple specialized teams working on different modules"
+    }
+}
+
+###
+
+### 6. Create Incubation Application - Zero Funding
+# @name createZeroFundingIncubation
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Bootstrap Startup",
+        "business_model": "Self-funded digital service platform",
+        "target_market": "Local small businesses",
+        "funding_amount": 0.00,
+        "team_size": 2,
+        "project_stage": "Bootstrapping",
+        "description": "Self-funded startup with no external funding requirements"
+    }
+}
+
+###
+
+### 7. Create Incubation Application - No Funding Amount
+# @name createNoFundingIncubation
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Open Source Project",
+        "business_model": "Open source with donation-based revenue",
+        "target_market": "Developer community worldwide",
+        "team_size": 3,
+        "project_stage": "Community Building",
+        "description": "Open source project seeking incubation support without monetary funding"
+    }
+}
+
+###
+
+### 8. Create Incubation Application - Edge Case: Maximum Team Size
+# @name createMaxTeamIncubation
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Massive Scale Platform",
+        "business_model": "Global platform with distributed teams",
+        "target_market": "Worldwide market across multiple industries",
+        "funding_amount": 10000000.00,
+        "team_size": 200,
+        "project_stage": "Scale Up",
+        "description": "Large-scale platform requiring massive team coordination"
+    }
+}
+
+###
+
+### 9. Create Incubation Application - Invalid Team Size (Zero)
+# @name createZeroTeamIncubation
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Ghost Project",
+        "business_model": "Automated AI business",
+        "target_market": "Fully automated market",
+        "funding_amount": 50000.00,
+        "team_size": 0,
+        "project_stage": "Concept",
+        "description": "Project with no human team members"
+    }
+}
+
+###
+
+### 10. Create Incubation Application - Invalid Team Size (Negative)
+# @name createNegativeTeamIncubation
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Time Travel Project",
+        "business_model": "Temporal business model",
+        "target_market": "Past and future markets",
+        "funding_amount": 100000.00,
+        "team_size": -5,
+        "project_stage": "Temporal Development",
+        "description": "Project with negative team size for testing validation"
+    }
+}
+
+###
+
+### 11. Create Incubation Application - Invalid Funding Amount (Negative)
+# @name createNegativeFundingIncubation
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Debt Project",
+        "business_model": "Reverse funding model",
+        "target_market": "Debt collectors",
+        "funding_amount": -50000.00,
+        "team_size": 3,
+        "project_stage": "Debt Stage",
+        "description": "Project requesting negative funding for testing"
+    }
+}
+
+###
+
+### 12. Create Incubation Application - Very Long Text Fields
+# @name createLongTextIncubation
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Very Long Project Name That Tests The Maximum Length Allowed For Project Names In The Incubation System",
+        "business_model": "This is a very long business model description that tests the maximum length allowed for business model fields in the incubation system. It describes a complex multi-tier business model with various revenue streams, customer segments, value propositions, key partnerships, cost structures, and detailed market analysis including competitive landscape, pricing strategies, customer acquisition costs, lifetime value calculations, market penetration strategies, and long-term sustainability plans.",
+        "target_market": "This is a very long target market description that includes detailed demographic analysis, geographic segmentation, psychographic profiling, behavioral patterns, market size estimation, total addressable market calculations, serviceable addressable market analysis, serviceable obtainable market projections, market trends, growth patterns, seasonal variations, competitive analysis, customer pain points, unmet needs identification, and comprehensive market research findings.",
+        "funding_amount": 999999.99,
+        "team_size": 15,
+        "project_stage": "Very Long Project Stage Name That Tests Maximum Length",
+        "description": "This is a very long description that tests the maximum length allowed for description fields in the incubation system. It provides comprehensive details about the project including technical specifications, implementation roadmap, development milestones, team structure, technology stack, infrastructure requirements, scalability plans, security measures, compliance requirements, intellectual property considerations, risk management strategies, and detailed project timeline with deliverables."
+    }
+}
+
+###
+
+### 13. Create Incubation Application - Missing Required Fields
+# @name createMissingFieldsIncubation
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Incomplete Project",
+        "funding_amount": 50000.00,
+        "team_size": 3
+    }
+}
+
+###
+
+### 14. Create Incubation Application - Special Characters
+# @name createSpecialCharsIncubation
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Ïñtërnätïönäl Ünïcödë Prøjëct™",
+        "business_model": "Global platform supporting múltiple languages: English, Español, Français, Deutsch, 中文, العربية, русский, 日本語",
+        "target_market": "International markets with special characters: América, Européa, Asía-Pacífico, Oriente Médio & África",
+        "funding_amount": 250000.50,
+        "team_size": 8,
+        "project_stage": "Ïntërnätïönäl Éxpänsïön",
+        "description": "Platform with emoji support 🚀💻🌍🎯 and symbols: @#$%^&*()+=[]{}|;:'\",.<>?/~` for global reach"
+    }
+}
+
+###
+
+### 15. Update Existing Incubation Application
+# @name updateIncubationApp
+@incubationId = use-id-from-create-response
+PUT {{baseUrl}}/api/applications/{{incubationId}}
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Updated EcoSmart Platform",
+        "business_model": "Updated business model with new revenue streams",
+        "target_market": "Expanded target market including new segments",
+        "funding_amount": 200000.00,
+        "team_size": 7,
+        "project_stage": "Product Launch",
+        "description": "Updated description with latest project developments and milestones"
+    }
+}
+
+###

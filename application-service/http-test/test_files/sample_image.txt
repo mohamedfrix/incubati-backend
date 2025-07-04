@@ -1,0 +1,17 @@
+# Sample Image Description
+
+This represents a sample image file for testing document upload functionality.
+
+**Image Information:**
+- File Type: JPEG
+- Dimensions: Small test image
+- Purpose: Profile photo/ID photo testing
+- Content: Simple test image
+
+**Use Cases:**
+- Profile photo upload
+- ID document testing
+- Image format validation
+- File type verification
+
+*Note: This is a text representation of what would be a JPEG image file for testing purposes.*

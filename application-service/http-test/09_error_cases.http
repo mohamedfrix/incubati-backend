@@ -1,0 +1,634 @@
+### Error Handling and Edge Cases - Comprehensive Tests
+
+@baseUrl = http://localhost:8080
+@contentType = application/json
+@testUserId = error-test-user
+
+### 1. Invalid HTTP Method on Application Endpoint
+# @name invalidMethodApplications
+PUT {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "invalid": "method"
+}
+
+###
+
+### 2. Invalid Content-Type for JSON Endpoint
+# @name invalidContentType
+POST {{baseUrl}}/api/applications
+Content-Type: text/plain
+
+This should be JSON but sent as plain text
+
+###
+
+### 3. Malformed JSON Request
+# @name malformedJson
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Malformed JSON Corp",
+        "position": "Test Position",
+        "duration_months": 6,
+        "start_date": "2025-09-01"
+    
+    // Missing closing brace and invalid comment
+    }
+}
+###
+
+### 4. Empty JSON Request
+# @name emptyJsonRequest
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{}
+
+###
+
+### 5. Null JSON Request
+# @name nullJsonRequest
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+null
+
+###
+
+### 6. Array Instead of Object
+# @name arrayInsteadOfObject
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+[
+    {
+        "user_id": "{{testUserId}}",
+        "application_type": "internship"
+    }
+]
+
+###
+
+### 7. Missing Required Fields
+# @name missingRequiredFields
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}"
+}
+
+###
+
+### 8. Invalid Application Type
+# @name invalidApplicationType
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "invalid_type",
+    "status": "brouillon",
+    "type": "InvalidType",
+    "data": {
+        "some": "data"
+    }
+}
+
+###
+
+### 9. Invalid Status Value
+# @name invalidStatusValue
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "invalid_status",
+    "type": "Internship",
+    "data": {
+        "company": "Invalid Status Corp",
+        "position": "Test Position",
+        "duration_months": 6,
+        "start_date": "2025-09-01"
+    }
+}
+
+###
+
+### 10. Type Mismatch Between application_type and type
+# @name typeMismatch
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "company": "Type Mismatch Corp",
+        "position": "Test Position",
+        "duration_months": 6,
+        "start_date": "2025-09-01"
+    }
+}
+
+###
+
+### 11. Wrong Data Structure for Application Type
+# @name wrongDataStructure
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "project_name": "This is incubation data",
+        "business_model": "But sent with internship type",
+        "target_market": "Should fail validation",
+        "team_size": 5,
+        "project_stage": "Wrong"
+    }
+}
+
+###
+
+### 12. Extremely Large JSON Payload
+# @name extremelyLargePayload
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Large Payload Corp",
+        "position": "Test Position",
+        "duration_months": 6,
+        "start_date": "2025-09-01",
+        "description": "This is an extremely long description that contains thousands of characters to test payload size limits and server handling of large requests. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. [This would continue for many more repetitions to test size limits]"
+    }
+}
+
+###
+
+### 13. Invalid Date Formats
+# @name invalidDateFormats
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Invalid Date Corp",
+        "position": "Date Tester",
+        "duration_months": 6,
+        "start_date": "32/13/2025"
+    }
+}
+
+###
+
+### 14. SQL Injection Attempt in Text Fields
+# @name sqlInjectionAttempt
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "'; DROP TABLE applications; --",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "'; DELETE FROM applications WHERE 1=1; --",
+        "position": "' OR '1'='1",
+        "duration_months": 6,
+        "start_date": "2025-09-01",
+        "supervisor_email": "'; INSERT INTO applications (user_id) VALUES ('hacker'); --"
+    }
+}
+
+###
+
+### 15. XSS Attempt in Text Fields
+# @name xssAttempt
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "<script>alert('XSS')</script>",
+        "position": "<img src='x' onerror='alert(1)'>",
+        "duration_months": 6,
+        "start_date": "2025-09-01",
+        "description": "<iframe src='javascript:alert(\"XSS\")'></iframe>",
+        "requirements": "<svg onload='alert(1)'>"
+    }
+}
+
+###
+
+### 16. Unicode and Special Characters Stress Test
+# @name unicodeStressTest
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "测试用户👨‍💻🚀",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "🏢 Ünïcödë Tëst Çörp™ 中文公司 شركة عربية русская компания",
+        "position": "💻 Dévelöppëûr Ïntërnë (开发实习生) مطور متدرب разработчик-стажер",
+        "duration_months": 6,
+        "start_date": "2025-09-01",
+        "supervisor_name": "José María García-Rodríguez 王小明 محمد أحمد Александр Петров",
+        "supervisor_email": "josé.maría@ünicöde-tëst.cöm",
+        "description": "🎯 Ïntërnshïp wïth émöjïs 😊🎉 änd spëcïäl chäräctërs: αβγδε, 中文描述, وصف عربي, русское описание, ελληνική περιγραφή",
+        "requirements": "Support für: UTF-8 📝, émöjïs 🌟, spëcïäl symbols: ©®™ ¡¿¡¿ «»""'' ‚„‰‱ ‹›‼⁇⁈⁉ ⁺⁻⁼⁽⁾"
+    }
+}
+
+###
+
+### 17. Invalid Number Types
+# @name invalidNumberTypes
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Number Test Corp",
+        "position": "Number Tester",
+        "duration_months": "six",
+        "start_date": "2025-09-01"
+    }
+}
+
+###
+
+### 18. Negative Numbers Where Positive Expected
+# @name negativeNumbers
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Negative Test Project",
+        "business_model": "Negative business",
+        "target_market": "Negative market",
+        "team_size": -5,
+        "project_stage": "Negative stage",
+        "funding_amount": -100000.00
+    }
+}
+
+###
+
+### 19. Floating Point Numbers Where Integers Expected
+# @name floatingPointIntegers
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Float Test Corp",
+        "position": "Float Tester",
+        "duration_months": 6.5,
+        "start_date": "2025-09-01"
+    }
+}
+
+###
+
+### 20. Very Large Numbers
+# @name veryLargeNumbers
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Large Numbers Project",
+        "business_model": "Large scale business",
+        "target_market": "Global market",
+        "team_size": 999999999,
+        "project_stage": "Massive stage",
+        "funding_amount": 999999999999999.99
+    }
+}
+
+###
+
+### 21. Invalid Email Formats
+# @name invalidEmailFormats
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Email Test Corp",
+        "position": "Email Tester",
+        "duration_months": 6,
+        "start_date": "2025-09-01",
+        "supervisor_name": "Email Supervisor",
+        "supervisor_email": "not-an-email"
+    }
+}
+
+###
+
+### 22. Multiple @ Signs in Email
+# @name multipleAtSignsEmail
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Multiple @ Test Corp",
+        "position": "Email Validator",
+        "duration_months": 6,
+        "start_date": "2025-09-01",
+        "supervisor_name": "Multi @ Supervisor",
+        "supervisor_email": "user@@domain.com"
+    }
+}
+
+###
+
+### 23. Empty Required String Fields
+# @name emptyRequiredStrings
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "",
+        "position": "",
+        "duration_months": 6,
+        "start_date": "2025-09-01"
+    }
+}
+
+###
+
+### 24. Whitespace Only Required Fields
+# @name whitespaceOnlyFields
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "   ",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "   ",
+        "position": "   ",
+        "duration_months": 6,
+        "start_date": "2025-09-01"
+    }
+}
+
+###
+
+### 25. Null Values in Required Fields
+# @name nullValuesInRequired
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": null,
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": null,
+        "position": "Test Position",
+        "duration_months": 6,
+        "start_date": "2025-09-01"
+    }
+}
+
+###
+
+### 26. Mixed Type Values
+# @name mixedTypeValues
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": 12345,
+    "application_type": true,
+    "status": ["brouillon"],
+    "type": {"Internship": "value"},
+    "data": "This should be an object"
+}
+
+###
+
+### 27. Recursive/Circular JSON Structure
+# @name recursiveJsonStructure
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Recursive Corp",
+        "position": "Recursion Tester",
+        "duration_months": 6,
+        "start_date": "2025-09-01",
+        "nested": {
+            "level1": {
+                "level2": {
+                    "level3": {
+                        "level4": {
+                            "level5": "Deep nesting test"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+###
+
+### 28. Invalid Accept Header
+# @name invalidAcceptHeader
+GET {{baseUrl}}/api/applications
+Accept: invalid/content-type
+
+###
+
+### 29. Missing Accept Header
+# @name missingAcceptHeader
+GET {{baseUrl}}/api/applications
+
+###
+
+### 30. Invalid HTTP Version
+# This test might not work with all HTTP clients
+# @name invalidHttpVersion
+GET {{baseUrl}}/api/applications HTTP/0.9
+Accept: {{contentType}}
+
+###
+
+### 31. Request with Invalid Authorization Header
+# @name invalidAuthHeader
+GET {{baseUrl}}/api/applications
+Authorization: Invalid auth format
+Accept: {{contentType}}
+
+###
+
+### 32. Very Long URL Parameters
+# @name veryLongUrlParams
+GET {{baseUrl}}/api/applications?user_id=very_long_user_id_that_exceeds_normal_limits_and_tests_the_maximum_allowed_length_for_url_parameters_in_the_query_string&application_type=very_long_application_type_name&status=very_long_status_name&page=1&limit=10&extra_param1=value1&extra_param2=value2&extra_param3=value3&extra_param4=value4&extra_param5=value5
+Accept: {{contentType}}
+
+###
+
+### 33. Invalid Characters in URL
+# @name invalidUrlCharacters
+GET {{baseUrl}}/api/applications?user_id=user<>|&application_type=type"&status=status'
+Accept: {{contentType}}
+
+###
+
+### 34. Request Timeout Simulation (Long Processing)
+# This would be simulated by the server if it has such endpoints
+# @name timeoutSimulation
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Timeout Test Corp",
+        "position": "Timeout Tester",
+        "duration_months": 6,
+        "start_date": "2025-09-01",
+        "description": "This request simulates a long processing time to test timeout handling"
+    }
+}
+
+###
+
+### 35. Concurrent Request Stress Test
+# @name concurrentRequest1
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "concurrent-user-1",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Concurrent Corp 1",
+        "position": "Concurrent Tester",
+        "duration_months": 6,
+        "start_date": "2025-09-01"
+    }
+}
+
+###
+
+# @name concurrentRequest2
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "concurrent-user-2",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Concurrent Project 2",
+        "business_model": "Concurrent business",
+        "target_market": "Concurrent market",
+        "team_size": 3,
+        "project_stage": "Concurrent stage"
+    }
+}
+
+###
+
+# @name concurrentRequest3
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "concurrent-user-3",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "Concurrent PFE 3",
+        "supervisor_name": "Concurrent Supervisor",
+        "academic_year": "2024-2025",
+        "specialization": "Concurrent Science",
+        "objectives": "Test concurrent processing"
+    }
+}
+
+###

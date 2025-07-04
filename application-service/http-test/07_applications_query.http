@@ -1,0 +1,462 @@
+### Application Query, Filtering, and Pagination Tests
+
+@baseUrl = http://localhost:8080
+@contentType = application/json
+@testUserId1 = query-test-user-1
+@testUserId2 = query-test-user-2
+@testUserId3 = query-test-user-3
+
+### Setup: Create multiple test applications for querying
+# @name createQueryTestApp1
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId1}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Query Test Corp A",
+        "position": "Junior Developer",
+        "duration_months": 6,
+        "start_date": "2025-09-01"
+    }
+}
+
+###
+
+# @name createQueryTestApp2
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId1}}",
+    "application_type": "incubation",
+    "status": "en_attente",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Query Test Project A",
+        "business_model": "SaaS Platform",
+        "target_market": "SMBs",
+        "team_size": 3,
+        "project_stage": "MVP"
+    }
+}
+
+###
+
+# @name createQueryTestApp3
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId2}}",
+    "application_type": "pfe",
+    "status": "approuvee",
+    "type": "Pfe",
+    "data": {
+        "title": "Query Test PFE A",
+        "supervisor_name": "Dr. Query",
+        "academic_year": "2024-2025",
+        "specialization": "Computer Science",
+        "objectives": "Test query functionality"
+    }
+}
+
+###
+
+# @name createQueryTestApp4
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId2}}",
+    "application_type": "internship",
+    "status": "rejetee",
+    "type": "Internship",
+    "data": {
+        "company": "Query Test Corp B",
+        "position": "Senior Developer",
+        "duration_months": 12,
+        "start_date": "2025-10-01"
+    }
+}
+
+###
+
+# @name createQueryTestApp5
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{testUserId3}}",
+    "application_type": "incubation",
+    "status": "modification_demandee",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Query Test Project B",
+        "business_model": "E-commerce Platform",
+        "target_market": "Consumers",
+        "team_size": 5,
+        "project_stage": "Beta"
+    }
+}
+
+###
+
+### 1. Get All Applications (No Filters)
+# @name getAllApplications
+GET {{baseUrl}}/api/applications
+Accept: {{contentType}}
+
+###
+
+### 2. Filter by User ID
+# @name filterByUserId
+GET {{baseUrl}}/api/applications?user_id={{testUserId1}}
+Accept: {{contentType}}
+
+###
+
+### 3. Filter by Application Type - Internship
+# @name filterByTypeInternship
+GET {{baseUrl}}/api/applications?application_type=internship
+Accept: {{contentType}}
+
+###
+
+### 4. Filter by Application Type - Incubation
+# @name filterByTypeIncubation
+GET {{baseUrl}}/api/applications?application_type=incubation
+Accept: {{contentType}}
+
+###
+
+### 5. Filter by Application Type - PFE
+# @name filterByTypePfe
+GET {{baseUrl}}/api/applications?application_type=pfe
+Accept: {{contentType}}
+
+###
+
+### 6. Filter by Status - Draft
+# @name filterByStatusDraft
+GET {{baseUrl}}/api/applications?status=brouillon
+Accept: {{contentType}}
+
+###
+
+### 7. Filter by Status - Pending
+# @name filterByStatusPending
+GET {{baseUrl}}/api/applications?status=en_attente
+Accept: {{contentType}}
+
+###
+
+### 8. Filter by Status - Approved
+# @name filterByStatusApproved
+GET {{baseUrl}}/api/applications?status=approuvee
+Accept: {{contentType}}
+
+###
+
+### 9. Filter by Status - Rejected
+# @name filterByStatusRejected
+GET {{baseUrl}}/api/applications?status=rejetee
+Accept: {{contentType}}
+
+###
+
+### 10. Filter by Status - Changes Requested
+# @name filterByStatusChanges
+GET {{baseUrl}}/api/applications?status=modification_demandee
+Accept: {{contentType}}
+
+###
+
+### 11. Multiple Filters - User ID and Type
+# @name filterUserAndType
+GET {{baseUrl}}/api/applications?user_id={{testUserId1}}&application_type=internship
+Accept: {{contentType}}
+
+###
+
+### 12. Multiple Filters - Type and Status
+# @name filterTypeAndStatus
+GET {{baseUrl}}/api/applications?application_type=incubation&status=en_attente
+Accept: {{contentType}}
+
+###
+
+### 13. Multiple Filters - User, Type, and Status
+# @name filterUserTypeStatus
+GET {{baseUrl}}/api/applications?user_id={{testUserId2}}&application_type=internship&status=rejetee
+Accept: {{contentType}}
+
+###
+
+### 14. Pagination - First Page (Limit 2)
+# @name paginationFirstPage
+GET {{baseUrl}}/api/applications?page=1&limit=2
+Accept: {{contentType}}
+
+###
+
+### 15. Pagination - Second Page
+# @name paginationSecondPage
+GET {{baseUrl}}/api/applications?page=2&limit=2
+Accept: {{contentType}}
+
+###
+
+### 16. Pagination - Third Page
+# @name paginationThirdPage
+GET {{baseUrl}}/api/applications?page=3&limit=2
+Accept: {{contentType}}
+
+###
+
+### 17. Pagination with Filters
+# @name paginationWithFilters
+GET {{baseUrl}}/api/applications?application_type=internship&page=1&limit=1
+Accept: {{contentType}}
+
+###
+
+### 18. Large Page Size
+# @name largePagination
+GET {{baseUrl}}/api/applications?limit=100
+Accept: {{contentType}}
+
+###
+
+### 19. Zero Page Size (Should Use Default)
+# @name zeroPageSize
+GET {{baseUrl}}/api/applications?limit=0
+Accept: {{contentType}}
+
+###
+
+### 20. Negative Page Number
+# @name negativePageNumber
+GET {{baseUrl}}/api/applications?page=-1&limit=10
+Accept: {{contentType}}
+
+###
+
+### 21. Invalid Page Number (String)
+# @name invalidPageNumber
+GET {{baseUrl}}/api/applications?page=invalid&limit=10
+Accept: {{contentType}}
+
+###
+
+### 22. Invalid Limit (String)
+# @name invalidLimit
+GET {{baseUrl}}/api/applications?page=1&limit=invalid
+Accept: {{contentType}}
+
+###
+
+### 23. Filter by Invalid Application Type
+# @name filterInvalidType
+GET {{baseUrl}}/api/applications?application_type=invalid_type
+Accept: {{contentType}}
+
+###
+
+### 24. Filter by Invalid Status
+# @name filterInvalidStatus
+GET {{baseUrl}}/api/applications?status=invalid_status
+Accept: {{contentType}}
+
+###
+
+### 25. Filter by Non-Existent User
+# @name filterNonExistentUser
+GET {{baseUrl}}/api/applications?user_id=non-existent-user-123456
+Accept: {{contentType}}
+
+###
+
+### 26. Very Large Page Number
+# @name veryLargePageNumber
+GET {{baseUrl}}/api/applications?page=999999&limit=10
+Accept: {{contentType}}
+
+###
+
+### 27. Query with All Parameters
+# @name queryAllParameters
+GET {{baseUrl}}/api/applications?user_id={{testUserId1}}&application_type=internship&status=brouillon&page=1&limit=5
+Accept: {{contentType}}
+
+###
+
+### 28. Empty Filter Values
+# @name emptyFilterValues
+GET {{baseUrl}}/api/applications?user_id=&application_type=&status=
+Accept: {{contentType}}
+
+###
+
+### 29. Special Characters in User ID Filter
+# @name specialCharsInUserId
+GET {{baseUrl}}/api/applications?user_id=special-user-éàèù@#$%
+Accept: {{contentType}}
+
+###
+
+### 30. URL Encoded Parameters
+# @name urlEncodedParams
+GET {{baseUrl}}/api/applications?user_id=user%20with%20spaces&application_type=internship
+Accept: {{contentType}}
+
+###
+
+### 31. Case Sensitivity Test - Uppercase Type
+# @name caseSensitivityType
+GET {{baseUrl}}/api/applications?application_type=INTERNSHIP
+Accept: {{contentType}}
+
+###
+
+### 32. Case Sensitivity Test - Uppercase Status
+# @name caseSensitivityStatus
+GET {{baseUrl}}/api/applications?status=BROUILLON
+Accept: {{contentType}}
+
+###
+
+### 33. Multiple Values for Same Parameter (Should Take Last)
+# @name multipleValues
+GET {{baseUrl}}/api/applications?application_type=internship&application_type=incubation
+Accept: {{contentType}}
+
+###
+
+### 34. Query with Extra Parameters (Should Ignore)
+# @name extraParameters
+GET {{baseUrl}}/api/applications?user_id={{testUserId1}}&extra_param=should_ignore&invalid=param
+Accept: {{contentType}}
+
+###
+
+### 35. Maximum Limit Test
+# @name maximumLimit
+GET {{baseUrl}}/api/applications?limit=1000
+Accept: {{contentType}}
+
+###
+
+### 36. Page Size 1 (Individual Records)
+# @name pageSizeOne
+GET {{baseUrl}}/api/applications?limit=1
+Accept: {{contentType}}
+
+###
+
+### 37. Filter Combination That Returns Empty Results
+# @name emptyResultFilter
+GET {{baseUrl}}/api/applications?user_id={{testUserId1}}&application_type=pfe&status=approuvee
+Accept: {{contentType}}
+
+###
+
+### 38. Query with Trailing Spaces in Parameters
+# @name trailingSpaces
+GET {{baseUrl}}/api/applications?user_id={{testUserId1}}%20&application_type=internship%20
+Accept: {{contentType}}
+
+###
+
+### 39. Numeric Values in String Parameters
+# @name numericInStringParams
+GET {{baseUrl}}/api/applications?user_id=12345&application_type=123
+Accept: {{contentType}}
+
+###
+
+### 40. Boolean Values in Parameters
+# @name booleanParams
+GET {{baseUrl}}/api/applications?user_id=true&application_type=false
+Accept: {{contentType}}
+
+###
+
+### Create additional test data for edge cases
+# @name createManyAppsForPagination
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "pagination-test-user",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Pagination Test Corp 1",
+        "position": "Test Position",
+        "duration_months": 6,
+        "start_date": "2025-09-01"
+    }
+}
+
+###
+
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "pagination-test-user",
+    "application_type": "internship",
+    "status": "en_attente",
+    "type": "Internship",
+    "data": {
+        "company": "Pagination Test Corp 2",
+        "position": "Test Position",
+        "duration_months": 6,
+        "start_date": "2025-09-01"
+    }
+}
+
+###
+
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "pagination-test-user",
+    "application_type": "internship",
+    "status": "approuvee",
+    "type": "Internship",
+    "data": {
+        "company": "Pagination Test Corp 3",
+        "position": "Test Position",
+        "duration_months": 6,
+        "start_date": "2025-09-01"
+    }
+}
+
+###
+
+### 41. Test Pagination with Many Records
+# @name paginationManyRecords
+GET {{baseUrl}}/api/applications?user_id=pagination-test-user&page=1&limit=2
+Accept: {{contentType}}
+
+###
+
+# @name paginationManyRecordsPage2
+GET {{baseUrl}}/api/applications?user_id=pagination-test-user&page=2&limit=2
+Accept: {{contentType}}
+
+###
+
+### 42. Test Sort Order (Verify Consistent Ordering)
+# @name testSortOrder
+GET {{baseUrl}}/api/applications?user_id=pagination-test-user
+Accept: {{contentType}}
+
+###

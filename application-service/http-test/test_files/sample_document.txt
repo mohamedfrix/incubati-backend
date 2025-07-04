@@ -1,0 +1,45 @@
+# Sample PDF Document
+
+This is a sample PDF document for testing document upload functionality.
+
+**Test Information:**
+- File Type: PDF
+- Size: Small (< 1MB)
+- Purpose: Resume/CV testing
+- Content: Basic text content
+
+**Sample Resume Content:**
+
+---
+
+## John Doe
+**Software Developer**
+
+📧 john.doe@email.com  
+📱 +1-555-0123  
+🌐 linkedin.com/in/johndoe  
+💻 github.com/johndoe  
+
+### Experience
+- **Junior Developer** at Tech Solutions (2023-2024)
+- **Intern** at StartupCorp (2022-2023)
+
+### Skills
+- JavaScript, Python, Java
+- React, Node.js, Django
+- PostgreSQL, MongoDB
+- Git, Docker, AWS
+
+### Education
+- **Bachelor of Computer Science**
+- University of Technology (2020-2024)
+- GPA: 3.8/4.0
+
+### Projects
+- E-commerce Platform (React/Node.js)
+- Data Analysis Tool (Python/Django)
+- Mobile App (React Native)
+
+---
+
+*This is a test document for API testing purposes.*

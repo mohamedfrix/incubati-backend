@@ -1,0 +1,749 @@
+### Integration Flows - End-to-End Scenarios
+
+@baseUrl = http://localhost:4001
+@contentType = application/json
+@multipartType = multipart/form-data
+
+### Test Users for Integration Scenarios
+@studentUser = integration-student-001
+@reviewerUser = integration-reviewer-001
+@adminUser = integration-admin-001
+
+### Scenario 1: Complete Internship Application Lifecycle
+### =====================================================
+
+### Step 1.1: Student creates draft internship application
+# @name internshipScenario_CreateDraft
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{studentUser}}",
+    "application_type": "Internship",
+    "status": "Brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "TechCorp Solutions",
+        "position": "Full-Stack Developer Intern",
+        "duration_months": 6,
+        "start_date": "2025-09-01",
+        "supervisor_name": "Sarah Johnson",
+        "supervisor_email": "sarah.johnson@techcorp.com",
+        "description": "Seeking an internship opportunity to apply my programming skills in a real-world environment. I am particularly interested in web development and want to gain experience with modern frameworks and development practices.",
+        "requirements": "Strong knowledge of JavaScript, React, Node.js. Familiarity with databases and version control systems. Excellent communication skills and ability to work in a team environment."
+    }
+}
+
+@internshipAppId = {{internshipScenario_CreateDraft.response.body.$.id}}
+
+###
+
+### Step 1.2: Upload resume document
+# @name internshipScenario_UploadResume
+POST {{baseUrl}}/api/applications/{{internshipAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="john_doe_resume.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 200
+>>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+(John Doe - Software Developer) Tj
+0 -20 Td
+(Email: john.doe@email.com) Tj
+0 -20 Td
+(Phone: +1-555-0123) Tj
+0 -40 Td
+(EXPERIENCE:) Tj
+0 -20 Td
+(- JavaScript, React, Node.js) Tj
+0 -20 Td
+(- Database design and management) Tj
+0 -20 Td
+(- Git version control) Tj
+ET
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000208 00000 n 
+trailer
+<<
+/Size 5
+/Root 1 0 R
+>>
+startxref
+450
+%%EOF
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+resume
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### Step 1.3: Upload cover letter
+# @name internshipScenario_UploadCoverLetter
+POST {{baseUrl}}/api/applications/{{internshipAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="cover_letter.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 300
+>>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+(Cover Letter - John Doe) Tj
+0 -40 Td
+(Dear Hiring Manager,) Tj
+0 -30 Td
+(I am writing to express my strong interest in the) Tj
+0 -20 Td
+(Full-Stack Developer Intern position at TechCorp Solutions.) Tj
+0 -30 Td
+(With my background in computer science and hands-on) Tj
+0 -20 Td
+(experience with modern web technologies, I am confident) Tj
+0 -20 Td
+(that I would be a valuable addition to your team.) Tj
+0 -40 Td
+(Thank you for your consideration.) Tj
+0 -30 Td
+(Sincerely,) Tj
+0 -20 Td
+(John Doe) Tj
+ET
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000208 00000 n 
+trailer
+<<
+/Size 5
+/Root 1 0 R
+>>
+startxref
+540
+%%EOF
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+cover_letter
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### Step 1.4: Verify application with documents
+# @name internshipScenario_VerifyDraft
+GET {{baseUrl}}/api/applications/{{internshipAppId}}
+Accept: {{contentType}}
+
+###
+
+### Step 1.5: Submit application for review
+# @name internshipScenario_SubmitForReview
+PATCH {{baseUrl}}/api/applications/{{internshipAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "en_attente",
+    "feedback": "Application submitted for review. All required documents have been uploaded."
+}
+
+###
+
+### Step 1.6: Reviewer requests changes
+# @name internshipScenario_RequestChanges
+PATCH {{baseUrl}}/api/applications/{{internshipAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "modification_demandee",
+    "feedback": "Please provide more details about your technical skills and include examples of previous projects. Also, clarify your availability for the internship duration."
+}
+
+###
+
+### Step 1.7: Student updates application
+# @name internshipScenario_UpdateApplication
+PUT {{baseUrl}}/api/applications/{{internshipAppId}}
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{studentUser}}",
+    "application_type": "internship",
+    "status": "modification_demandee",
+    "type": "Internship",
+    "data": {
+        "company": "TechCorp Solutions",
+        "position": "Full-Stack Developer Intern",
+        "duration_months": 6,
+        "start_date": "2025-09-01",
+        "supervisor_name": "Sarah Johnson",
+        "supervisor_email": "sarah.johnson@techcorp.com",
+        "description": "Seeking an internship opportunity to apply my programming skills in a real-world environment. I have completed several projects including a full-stack e-commerce application using React and Node.js, and a mobile app using React Native. I am available full-time for the entire 6-month duration and am eager to contribute to your development team.",
+        "requirements": "Strong knowledge of JavaScript (3+ years), React (2 years), Node.js (2 years), PostgreSQL and MongoDB databases, Git version control, Docker basics. Portfolio available at github.com/johndoe. Excellent communication skills and proven ability to work in agile team environments."
+    }
+}
+
+###
+
+### Step 1.8: Upload portfolio document
+# @name internshipScenario_UploadPortfolio
+POST {{baseUrl}}/api/applications/{{internshipAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="portfolio.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Portfolio document with project examples and technical achievements
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+portfolio
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### Step 1.9: Resubmit for review
+# @name internshipScenario_Resubmit
+PATCH {{baseUrl}}/api/applications/{{internshipAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "en_attente",
+    "feedback": "Application updated with additional details and portfolio. Ready for final review."
+}
+
+###
+
+### Step 1.10: Final approval
+# @name internshipScenario_FinalApproval
+PATCH {{baseUrl}}/api/applications/{{internshipAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "approuvee",
+    "feedback": "Congratulations! Your internship application has been approved. The updated portfolio and detailed technical skills demonstration convinced us of your qualifications. You will receive further instructions about the onboarding process via email."
+}
+
+###
+
+### Step 1.11: Verify final state
+# @name internshipScenario_VerifyFinalState
+GET {{baseUrl}}/api/applications/{{internshipAppId}}
+Accept: {{contentType}}
+
+###
+
+### Scenario 2: Incubation Project Application Flow
+### ================================================
+
+### Step 2.1: Entrepreneur creates incubation application
+# @name incubationScenario_CreateApplication
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{studentUser}}",
+    "application_type": "incubation",
+    "status": "brouillon",
+    "type": "Incubation",
+    "data": {
+        "project_name": "EcoSmart Waste Management",
+        "business_model": "B2B SaaS platform that uses IoT sensors and AI to optimize waste collection routes for municipalities and waste management companies. Revenue streams include monthly subscriptions, data analytics services, and consulting fees.",
+        "target_market": "Municipal waste management departments, private waste collection companies, smart city initiatives. Target market size of $15B globally with 30% annual growth in smart waste management solutions.",
+        "funding_amount": 250000.00,
+        "team_size": 4,
+        "project_stage": "MVP Development",
+        "description": "Our platform combines IoT sensors in waste bins with machine learning algorithms to predict optimal collection schedules, reducing fuel costs by 40% and increasing operational efficiency. We have completed market research and are currently developing our MVP with initial pilot customers lined up."
+    }
+}
+
+@incubationAppId = {{incubationScenario_CreateApplication.response.body.$.id}}
+
+###
+
+### Step 2.2: Upload business plan
+# @name incubationScenario_UploadBusinessPlan
+POST {{baseUrl}}/api/applications/{{incubationAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="business_plan.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Comprehensive business plan document with market analysis, financial projections, and growth strategy
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+business_plan
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### Step 2.3: Upload team information
+# @name incubationScenario_UploadTeamInfo
+POST {{baseUrl}}/api/applications/{{incubationAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="team_profiles.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Team member profiles, roles, and qualifications
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+team_info
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### Step 2.4: Submit incubation application
+# @name incubationScenario_Submit
+PATCH {{baseUrl}}/api/applications/{{incubationAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "en_attente",
+    "feedback": "Incubation application submitted with complete business plan and team information."
+}
+
+###
+
+### Step 2.5: Request additional financial projections
+# @name incubationScenario_RequestFinancials
+PATCH {{baseUrl}}/api/applications/{{incubationAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "modification_demandee",
+    "feedback": "Excellent project concept! Please provide detailed 5-year financial projections, competitive analysis, and risk assessment. Also include information about intellectual property and any existing partnerships or customer commitments."
+}
+
+###
+
+### Step 2.6: Upload additional documents
+# @name incubationScenario_UploadFinancials
+POST {{baseUrl}}/api/applications/{{incubationAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="financial_projections.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Detailed 5-year financial projections with revenue forecasts, expense breakdown, and funding requirements
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+financial_projections
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### Step 2.7: Approve incubation application
+# @name incubationScenario_Approve
+PATCH {{baseUrl}}/api/applications/{{incubationAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "approuvee",
+    "feedback": "Congratulations! Your incubation application has been approved. The comprehensive business plan, strong team composition, and realistic financial projections demonstrate excellent potential. You will be contacted by our incubation team within 48 hours to begin the onboarding process."
+}
+
+###
+
+### Scenario 3: PFE Application with Academic Focus
+### ===============================================
+
+### Step 3.1: Student creates PFE application
+# @name pfeScenario_CreateApplication
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{studentUser}}",
+    "application_type": "pfe",
+    "status": "brouillon",
+    "type": "Pfe",
+    "data": {
+        "title": "Machine Learning for Predictive Maintenance in Industrial IoT Systems",
+        "supervisor_name": "Dr. Elena Rodriguez",
+        "company": "Industrial Automation Solutions",
+        "academic_year": "2024-2025",
+        "specialization": "Computer Science - Machine Learning",
+        "objectives": "Develop and implement machine learning algorithms for predictive maintenance in industrial IoT environments. Create a system that can predict equipment failures with 90% accuracy and reduce unplanned downtime by 50%.",
+        "methodology": "Literature review of ML techniques for predictive maintenance, data collection from industrial sensors, feature engineering, model development using Random Forest and LSTM networks, validation with real-world industrial data, performance benchmarking.",
+        "expected_outcomes": "Functional predictive maintenance system, trained ML models with validated accuracy, industrial deployment pilot, research paper publication, and open-source toolkit for industrial applications."
+    }
+}
+
+@pfeAppId = {{pfeScenario_CreateApplication.response.body.$.id}}
+
+###
+
+### Step 3.2: Upload research proposal
+# @name pfeScenario_UploadProposal
+POST {{baseUrl}}/api/applications/{{pfeAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="research_proposal.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Detailed research proposal with literature review, methodology, timeline, and expected contributions
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+research_proposal
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### Step 3.3: Submit PFE application
+# @name pfeScenario_Submit
+PATCH {{baseUrl}}/api/applications/{{pfeAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "en_attente",
+    "feedback": "PFE application submitted with detailed research proposal and industrial partnership."
+}
+
+###
+
+### Step 3.4: Approve PFE application
+# @name pfeScenario_Approve
+PATCH {{baseUrl}}/api/applications/{{pfeAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "approuvee",
+    "feedback": "Excellent research proposal! The combination of academic rigor and industrial application makes this an ideal PFE project. Approved for 2024-2025 academic year."
+}
+
+###
+
+### Scenario 4: Multi-User Query and Management
+### ============================================
+
+### Step 4.1: Create applications for different users
+# @name multiUserScenario_CreateApp1
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "user-alpha",
+    "application_type": "internship",
+    "status": "en_attente",
+    "type": "Internship",
+    "data": {
+        "company": "Alpha Corp",
+        "position": "Software Engineer Intern",
+        "duration_months": 6,
+        "start_date": "2025-09-01"
+    }
+}
+
+###
+
+# @name multiUserScenario_CreateApp2
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "user-beta",
+    "application_type": "incubation",
+    "status": "approuvee",
+    "type": "Incubation",
+    "data": {
+        "project_name": "Beta Startup",
+        "business_model": "B2C Platform",
+        "target_market": "Consumers",
+        "team_size": 3,
+        "project_stage": "Launch"
+    }
+}
+
+###
+
+# @name multiUserScenario_CreateApp3
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "user-gamma",
+    "application_type": "pfe",
+    "status": "rejetee",
+    "type": "Pfe",
+    "data": {
+        "title": "Gamma Research Project",
+        "supervisor_name": "Prof. Gamma",
+        "academic_year": "2024-2025",
+        "specialization": "Data Science",
+        "objectives": "Research project objectives"
+    }
+}
+
+###
+
+### Step 4.2: Query all applications
+# @name multiUserScenario_QueryAll
+GET {{baseUrl}}/api/applications
+Accept: {{contentType}}
+
+###
+
+### Step 4.3: Query by type
+# @name multiUserScenario_QueryByType
+GET {{baseUrl}}/api/applications?application_type=internship
+Accept: {{contentType}}
+
+###
+
+### Step 4.4: Query by status
+# @name multiUserScenario_QueryByStatus
+GET {{baseUrl}}/api/applications?status=approuvee
+Accept: {{contentType}}
+
+###
+
+### Step 4.5: Query by user
+# @name multiUserScenario_QueryByUser
+GET {{baseUrl}}/api/applications?user_id=user-alpha
+Accept: {{contentType}}
+
+###
+
+### Step 4.6: Complex query with pagination
+# @name multiUserScenario_ComplexQuery
+GET {{baseUrl}}/api/applications?application_type=internship&status=en_attente&page=1&limit=5
+Accept: {{contentType}}
+
+###
+
+### Scenario 5: Document Management Workflow
+### =========================================
+
+### Step 5.1: Create application for document testing
+# @name documentWorkflow_CreateApp
+POST {{baseUrl}}/api/applications
+Content-Type: {{contentType}}
+
+{
+    "user_id": "{{studentUser}}",
+    "application_type": "internship",
+    "status": "brouillon",
+    "type": "Internship",
+    "data": {
+        "company": "Document Test Corp",
+        "position": "Document Manager",
+        "duration_months": 6,
+        "start_date": "2025-09-01"
+    }
+}
+
+@docWorkflowAppId = {{documentWorkflow_CreateApp.response.body.$.id}}
+
+###
+
+### Step 5.2: Upload multiple document types
+# @name documentWorkflow_UploadResume
+POST {{baseUrl}}/api/applications/{{docWorkflowAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="resume.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Resume document content
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+resume
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+@resumeDocId = {{documentWorkflow_UploadResume.response.body.$.id}}
+
+###
+
+# @name documentWorkflow_UploadTranscript
+POST {{baseUrl}}/api/applications/{{docWorkflowAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="transcript.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Academic transcript content
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+transcript
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+@transcriptDocId = {{documentWorkflow_UploadTranscript.response.body.$.id}}
+
+###
+
+### Step 5.3: List all documents
+# @name documentWorkflow_ListDocuments
+GET {{baseUrl}}/api/applications/{{docWorkflowAppId}}/documents
+Accept: {{contentType}}
+
+###
+
+### Step 5.4: Generate download URLs
+# @name documentWorkflow_DownloadResume
+GET {{baseUrl}}/api/documents/{{resumeDocId}}/download
+
+###
+
+# @name documentWorkflow_DownloadTranscript
+GET {{baseUrl}}/api/documents/{{transcriptDocId}}/download
+
+###
+
+### Step 5.5: Delete one document
+# @name documentWorkflow_DeleteDocument
+DELETE {{baseUrl}}/api/documents/{{transcriptDocId}}
+
+###
+
+### Step 5.6: Verify document deletion
+# @name documentWorkflow_VerifyDeletion
+GET {{baseUrl}}/api/applications/{{docWorkflowAppId}}/documents
+Accept: {{contentType}}
+
+###
+
+### Scenario 6: Error Recovery and Edge Cases
+### ==========================================
+
+### Step 6.1: Attempt invalid status transition
+# @name errorRecovery_InvalidTransition
+PATCH {{baseUrl}}/api/applications/{{internshipAppId}}/status
+Content-Type: {{contentType}}
+
+{
+    "status": "brouillon",
+    "feedback": "Attempting to move approved application back to draft"
+}
+
+###
+
+### Step 6.2: Upload to non-existent application
+# @name errorRecovery_UploadToNonExistent
+@fakeAppId = 00000000-0000-0000-0000-000000000000
+POST {{baseUrl}}/api/applications/{{fakeAppId}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="test.pdf"
+Content-Type: application/pdf
+
+Test content
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="document_type"
+
+test
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### Step 6.3: Query with invalid parameters
+# @name errorRecovery_InvalidQuery
+GET {{baseUrl}}/api/applications?application_type=invalid&status=nonexistent&page=-1&limit=0
+Accept: {{contentType}}
+
+###
+
+### Step 6.4: Verify system still functional after errors
+# @name errorRecovery_VerifySystemHealth
+GET {{baseUrl}}/health
+Accept: {{contentType}}
+
+###
+
+### Final Integration Test: Verify All Created Applications
+# @name integration_FinalVerification
+GET {{baseUrl}}/api/applications?user_id={{studentUser}}
+Accept: {{contentType}}
+
+###
