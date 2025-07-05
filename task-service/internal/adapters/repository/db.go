@@ -24,3 +24,8 @@ func OpenDB(DSN string) (*DB, error) {
         db: db,
     }, nil
 }
+
+// GetDB returns the underlying sql.DB instance
+func (db *DB) GetDB() *sql.DB {
+    return db.db
+}
