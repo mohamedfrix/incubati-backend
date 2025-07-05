@@ -29,6 +29,7 @@ func NewProjectHandler(pr_service *services.ProjectService, projectMember_servic
 func (p *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 
 	var input struct {
+		UserID uuid.UUID `json:"user_id"`
 		Title string `json:"title"`
 		Description string `json:"description"`
 		Domain string `json:"domain"`
@@ -134,6 +135,7 @@ func (p *ProjectHandler) GetProjectByID(w http.ResponseWriter, r *http.Request) 
 
 func (p *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	var input struct {
+		UserID uuid.UUID `json:"user_id"`
 		Title string `json:"title"`
 		Description string `json:"description"`
 		Domain string `json:"domain"`
@@ -195,6 +197,18 @@ func (p *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// check permission:
+	permission, err := p.projectMember_service.CheckMemberPermissions(project.ID, input.UserID )
+	if err != nil {
+		utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": err.Error()}, nil)
+		return
+	}
+
+	if !permission.CanEditProject && project.OwnerID != input.UserID {
+		utils.WriteJSON(w, r, http.StatusUnauthorized, utils.Envelope{"error": "You do not have permission to edit this project"}, nil)
+		return
+	}
+
 	// update the project:
 	new_project, err := p.project_service.UpdateProject(&project)
 	if err != nil {
@@ -211,6 +225,27 @@ func (p *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 
 func (p *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
 	projectID_str := utils.GetURLparams(r, "project_id")
+
+	var input struct {
+		UserID uuid.UUID `json:"user_id"`
+	}
+
+	err := utils.ReadJSON(w, r, &input)
+	if err != nil {
+		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"error": "Malformed JSON: could not parse request body"}, nil)
+		return
+	}
+
+	project, err := p.project_service.GetProjectByID(projectID_str)
+	if err != nil {
+		utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": err.Error()}, nil)
+		return
+	}
+
+	if project.OwnerID != input.UserID {
+		utils.WriteJSON(w, r, http.StatusUnauthorized, utils.Envelope{"error": "You do not have permission to delete this project"}, nil)
+		return
+	}
 
 	title, err := p.project_service.DeleteProject(projectID_str)
 	if err != nil {
