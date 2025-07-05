@@ -12,19 +12,24 @@ import (
 
 type ProjectMentorHandler struct {
 	ProjectMentorService ports.ProjectMentorService
+	ProjectMemberService ports.ProjectMemberService
+	ProjectService ports.ProjectService
 }
 
 
 
-func NewProjectMentorHandler(projectMentorService ports.ProjectMentorService) *ProjectMentorHandler {
+func NewProjectMentorHandler(projectMentorService ports.ProjectMentorService, ProjectMemberService  ports.ProjectMemberService, ProjectService ports.ProjectService) *ProjectMentorHandler {
 	return &ProjectMentorHandler{
 		ProjectMentorService: projectMentorService,
+		ProjectMemberService: ProjectMemberService,
+		ProjectService: ProjectService,
 	}
 }	
 
 
 func (h *ProjectMentorHandler) AddMentorToProject(w http.ResponseWriter, r *http.Request) {
 	var input struct {
+		UserID uuid.UUID `json:"user_id"`
 		Mentor string `json:"mentor"`
 		Mentorship string `json:"mentorship"`
 		StartDate string `json:"start_date"`
@@ -38,8 +43,34 @@ func (h *ProjectMentorHandler) AddMentorToProject(w http.ResponseWriter, r *http
 		return
 	}
 
+
 	// read the project ID:
 	projectID_str := utils.GetURLparams(r, "project_id")
+	projectID_uuid, err := uuid.Parse(projectID_str)
+	if err != nil {
+		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"error": "invalid project ID"}, nil)
+		return
+	}
+
+	// check permission here:
+	//1. check if the user id is the project owner:
+	permissions, err := h.ProjectMemberService.CheckMemberPermissions(projectID_uuid, input.UserID)
+	if err != nil {
+		utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": "failed to check permissions"}, nil)
+		return
+	}
+	if !permissions.CanManageTasks {
+		project, err := h.ProjectService.GetProjectByID(projectID_str)
+		if err != nil {
+			utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": "failed to get project"}, nil)
+			return
+		}
+		if project.OwnerID != input.UserID {
+			utils.WriteJSON(w, r, http.StatusUnauthorized, utils.Envelope{"error": "you are not allowed to assign a mentor to this project"}, nil)
+			return
+		}
+	}
+
 
 	// create projectMentor object:
 	var projectMentor domain.ProjectMentor
@@ -67,11 +98,9 @@ func (h *ProjectMentorHandler) AddMentorToProject(w http.ResponseWriter, r *http
 
 	projectMentor.HoursCommitted = input.HoursCommitted
 
-	projectMentor.ProjectID, err = uuid.Parse(projectID_str)
-	if err != nil {
-		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"error": "invalid project ID"}, nil)
-		return
-	}
+	projectMentor.ProjectID = projectID_uuid
+
+
 
 	// assign the mentor:
 	pMentor, err := h.ProjectMentorService.AssignMentor(r.Context(), &projectMentor)
