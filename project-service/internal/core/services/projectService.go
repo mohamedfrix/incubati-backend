@@ -299,3 +299,50 @@ func (p *ProjectService) GetProjectStatistics(ctx context.Context, projectID uui
 
 	return statistics, nil
 }
+
+func (p *ProjectService) GetAllProjects(limit, offset int, filters map[string]interface{}) (*ports.GetAllProjectsResponse, error) {
+	// Get projects from repository
+	projects, totalCount, err := p.ProjectRepo.GetAllProjects(limit, offset, filters)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get projects: %w", err)
+	}
+
+	// Convert to project summaries
+	var projectSummaries []ports.ProjectSummary
+	for _, project := range projects {
+		if project != nil {
+			summary := ports.ProjectSummary{
+				ID:                 project.ID,
+				Title:              project.Title,
+				Domain:             project.Domain,
+				Status:             project.Status,
+				StartDate:          project.StartDate.Format("2006-01-02"),
+				EndDate:            project.EndDate.Format("2006-01-02"),
+				ProgressPercentage: project.ProgressPercentage,
+				IsPublic:           project.IsPublic,
+				OwnerID:            project.OwnerID,
+				CreatedAt:          project.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+				UpdatedAt:          project.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			}
+			projectSummaries = append(projectSummaries, summary)
+		}
+	}
+
+	// Calculate pagination
+	totalPages := (totalCount + limit - 1) / limit // Ceiling division
+	currentPage := (offset / limit) + 1
+
+	pagination := ports.PaginationInfo{
+		Page:       currentPage,
+		PageSize:   limit,
+		TotalCount: totalCount,
+		TotalPages: totalPages,
+	}
+
+	response := &ports.GetAllProjectsResponse{
+		Projects:   projectSummaries,
+		Pagination: pagination,
+	}
+
+	return response, nil
+}

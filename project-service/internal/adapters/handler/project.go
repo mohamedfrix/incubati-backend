@@ -3,9 +3,11 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/moulaybdl/incubAT/project_service/internal/core/domain"
+	"github.com/moulaybdl/incubAT/project_service/internal/core/ports"
 	"github.com/moulaybdl/incubAT/project_service/internal/core/services"
 	"github.com/moulaybdl/incubAT/project_service/pkg/utils"
 )
@@ -52,6 +54,9 @@ func (p *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	project.Description = &input.Description
 	project.Domain = input.Domain
 	project.Status = input.Status
+	project.OwnerID = input.UserID
+	project.CreatedBy = input.UserID
+	project.UpdatedBy = &input.UserID
 
 	s_date, err := utils.FromStringToTime(input.StartDate)
 	if err != nil {
@@ -60,7 +65,7 @@ func (p *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	}
 	project.StartDate = *s_date
 
-	e_date, err := utils.FromStringToTime(input.StartDate)
+	e_date, err := utils.FromStringToTime(input.EndDate)
 	if err != nil {
 		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"date": "invalid date format"}, nil)
 		return
@@ -88,6 +93,19 @@ func (p *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": err.Error()}, nil)
 		return
+	}
+
+	// Auto-add creator as project manager with full permissions (as per documentation)
+	permissions := ports.ProjectMemberPermissions{
+		CanEditProject: true,
+		CanManageTasks: true,
+		CanViewReports: true,
+	}
+	
+	_, err = p.projectMember_service.AddMemberToProject(response.ID, input.UserID, "manager", permissions)
+	if err != nil {
+		// Log the error but don't fail the project creation
+		fmt.Printf("Warning: Failed to add creator as project manager: %v\n", err)
 	}
 
 	// return reponse:
@@ -167,6 +185,7 @@ func (p *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	project.Description = &input.Description
 	project.Domain = input.Domain
 	project.Status = input.Status
+	project.UpdatedBy = &input.UserID
 
 	s_date, err := utils.FromStringToTime(input.StartDate)
 	if err != nil {
@@ -175,7 +194,7 @@ func (p *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	}
 	project.StartDate = *s_date
 
-	e_date, err := utils.FromStringToTime(input.StartDate)
+	e_date, err := utils.FromStringToTime(input.EndDate)
 	if err != nil {
 		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"date": "invalid date format"}, nil)
 		return
@@ -278,5 +297,88 @@ func (p *ProjectHandler) GetProjectStatistics(w http.ResponseWriter, r *http.Req
 	utils.WriteJSON(w, r, http.StatusOK, utils.Envelope{
 		"success": true,
 		"data":    statistics,
+	}, nil)
+}
+
+
+func (p *ProjectHandler) GetAllProjects(w http.ResponseWriter, r *http.Request) {
+	//! once again, lets assume the user_id is included as URL params:
+	userID_str := utils.GetURLparams(r, "user_id") // This is just to show that we assume the user_id is included
+	userID_uuid, err := uuid.Parse(userID_str)
+	if err != nil {
+		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"error": "Invalid user ID format"}, nil)
+		return
+	}
+
+	// Parse query parameters for filtering and pagination
+	query := r.URL.Query()
+	
+	// Default pagination values
+	page := 1
+	pageSize := 10
+	
+	// Parse page
+	if pageStr := query.Get("page"); pageStr != "" {
+		if parsedPage, err := strconv.Atoi(pageStr); err == nil && parsedPage > 0 {
+			page = parsedPage
+		}
+	}
+	
+	// Parse page_size
+	if pageSizeStr := query.Get("page_size"); pageSizeStr != "" {
+		if parsedPageSize, err := strconv.Atoi(pageSizeStr); err == nil && parsedPageSize > 0 && parsedPageSize <= 100 {
+			pageSize = parsedPageSize
+		}
+	}
+	
+	// Calculate offset
+	offset := (page - 1) * pageSize
+	
+	// Build filters map
+	filters := make(map[string]interface{})
+	
+	if status := query.Get("status"); status != "" {
+		filters["status"] = status
+	}
+	
+	if domain := query.Get("domain"); domain != "" {
+		filters["domain"] = domain
+	}
+	
+	if search := query.Get("search"); search != "" {
+		filters["search"] = search
+	}
+	
+	if orderBy := query.Get("order_by"); orderBy != "" {
+		filters["order_by"] = orderBy
+	} else {
+		filters["order_by"] = "-created_at" // Default order
+	}
+	
+	// Get projects from service
+	response, err := p.project_service.GetAllProjects(pageSize, offset, filters)
+	if err != nil {
+		utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": err.Error()}, nil)
+		return
+	}
+	
+	// Filter projects based on permissions - only include public projects or projects owned by the user
+	var filteredProjects []ports.ProjectSummary
+	for _, project := range response.Projects {
+		// Include project if it's public OR if the user is the owner
+		if project.IsPublic || project.OwnerID == userID_uuid {
+			filteredProjects = append(filteredProjects, project)
+		}
+	}
+	
+	// Update the response with filtered projects and adjust pagination
+	response.Projects = filteredProjects
+	response.Pagination.TotalCount = len(filteredProjects)
+	response.Pagination.TotalPages = (len(filteredProjects) + pageSize - 1) / pageSize // Ceiling division
+	
+	// Return success response
+	utils.WriteJSON(w, r, http.StatusOK, utils.Envelope{
+		"success": true,
+		"data":    response,
 	}, nil)
 }

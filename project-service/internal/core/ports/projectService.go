@@ -10,6 +10,7 @@ import (
 type ProjectService interface {
 	CreateProject(*domain.Project) (*CompleteProjectResponse, error) 
 	GetProjectByID(projectID string) (*domain.Project, error)
+	GetAllProjects(limit, offset int, filters map[string]interface{}) (*GetAllProjectsResponse, error)
 	UpdateProject(project *domain.Project) (*domain.Project, error)
 	DeleteProject(projectID string) (*string, error)
 	GetProjectStatistics(ctx context.Context, projectID uuid.UUID) (*ProjectStatistics, error)
@@ -73,4 +74,33 @@ type ProjectInfo struct {
 type TimelineStatistics struct {
 	ProjectDurationDays int     `json:"project_duration_days"`
 	ProgressByTime      float64 `json:"progress_by_time"`
+}
+
+// GetAllProjectsResponse represents the response for getting all projects
+type GetAllProjectsResponse struct {
+	Projects   []ProjectSummary `json:"projects"`
+	Pagination PaginationInfo   `json:"pagination"`
+}
+
+// ProjectSummary represents a summary of project details for the list view
+type ProjectSummary struct {
+	ID                 uuid.UUID `json:"id"`
+	Title              string    `json:"title"`
+	Domain             string    `json:"domain"`
+	Status             string    `json:"status"`
+	StartDate          string    `json:"start_date"`
+	EndDate            string    `json:"end_date"`
+	ProgressPercentage int       `json:"progress_percentage"`
+	IsPublic           bool      `json:"is_public"`
+	OwnerID            uuid.UUID `json:"owner_id"`
+	CreatedAt          string    `json:"created_at"`
+	UpdatedAt          string    `json:"updated_at"`
+}
+
+// PaginationInfo represents pagination information
+type PaginationInfo struct {
+	Page       int `json:"page"`
+	PageSize   int `json:"page_size"`
+	TotalCount int `json:"total_count"`
+	TotalPages int `json:"total_pages"`
 }
