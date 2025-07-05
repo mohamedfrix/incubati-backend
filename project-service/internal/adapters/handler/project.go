@@ -286,6 +286,36 @@ func (p *ProjectHandler) GetProjectStatistics(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	// check permission:
+	// get the user id:
+	userID_str := r.Header.Get("user_id")
+	userID_uuid, err := uuid.Parse(userID_str)
+	if err != nil {
+		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"error": "Invalid user ID format"}, nil)
+		return
+	}
+
+	// check if the project is public
+	project, err := p.project_service.GetProjectByID(projectID_str)
+	if err != nil {
+		utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": err.Error()}, nil)
+		return
+	}
+
+	if !project.IsPublic {
+		// check if the user is a member of the project
+		permission, err := p.projectMember_service.CheckMemberPermissions(project.ID, userID_uuid)
+		if err != nil {
+			utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": err.Error()}, nil)
+			return
+		}
+
+		if !permission.IsMember {
+			utils.WriteJSON(w, r, http.StatusUnauthorized, utils.Envelope{"error": "You do not have permission to access this project's statistics"}, nil)
+			return
+		}
+	}
+
 	// Get project statistics
 	statistics, err := p.project_service.GetProjectStatistics(r.Context(), projectID)
 	if err != nil {

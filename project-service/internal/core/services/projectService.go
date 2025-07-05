@@ -224,6 +224,7 @@ func (p *ProjectService) GetProjectStatistics(ctx context.Context, projectID uui
 		return nil, fmt.Errorf("project not found")
 	}
 
+
 	// Prepare project info
 	projectInfo := ports.ProjectInfo{
 		ID:                 project.ID,
