@@ -15,11 +15,13 @@ import (
 type ProjectHandler struct {
 	// define services here
 	project_service *services.ProjectService
+	projectMember_service *services.ProjectMemberService
 }
 
-func NewProjectHandler(pr_service *services.ProjectService) *ProjectHandler{
+func NewProjectHandler(pr_service *services.ProjectService, projectMember_service  *services.ProjectMemberService) *ProjectHandler{
 	return &ProjectHandler{
 		project_service: pr_service,
+		projectMember_service: projectMember_service,
 	}
 }
 
@@ -66,6 +68,7 @@ func (p *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 
 	project.ProgressPercentage = input.ProgressPercentage
 	project.IsPublic = input.IsPublic
+	fmt.Println("IsPublic: ", input.IsPublic)
 
 
 	// validate the input of needed 
@@ -95,10 +98,35 @@ func (p *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 func (p *ProjectHandler) GetProjectByID(w http.ResponseWriter, r *http.Request) {
 	projectID_str := utils.GetURLparams(r, "project_id")
 
+	//! input: user should include his id to check the permission:
+	//! here i will assute that the id is incldued as url params
+	userID_str := utils.GetURLparams(r, "user_id")
+	userID_uuid, err := uuid.Parse(userID_str)
+	if err != nil {
+		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"error": "Invalid user ID format"}, nil)
+		return
+	}
+
 	project, err := p.project_service.GetProjectByID(projectID_str)
 	if err != nil {
 		utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": err.Error()}, nil)
 		return
+	}
+
+	// verify permission:
+	// 1. verify if project is public:
+	if !project.IsPublic {
+		// 2. verify if the user a member
+		permission, err := p.projectMember_service.CheckMemberPermissions(project.ID, userID_uuid )
+		if err != nil {
+			utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": err.Error()}, nil)
+			return
+		}
+
+		if !permission.IsMember {
+			utils.WriteJSON(w, r, http.StatusUnauthorized, utils.Envelope{"error": "You do not have permission to access this project"}, nil)
+			return
+		}
 	}
 
 	utils.WriteJSON(w, r, http.StatusOK, utils.Envelope{"success": true, "message":"Project retrieved successfully" ,"project": project}, nil)

@@ -26,12 +26,12 @@ func InitRoutes(db *repository.DB) *httprouter.Router {
 	projectMentorService := services.NewProjectMentorService(db, db, db, db)
 
 	// define handlers
-	projectHandler := handler.NewProjectHandler(projectService)
+	projectHandler := handler.NewProjectHandler(projectService, projectMemberService )
 	projectMemberHandler := handler.NewProjectMemberHandler(projectMemberService)
 	projectMentorHandler := handler.NewProjectMentorHandler(projectMentorService)
 
 	router.HandlerFunc(http.MethodPost,  "/api/projects/", projectHandler.CreateProject)
-	router.HandlerFunc(http.MethodGet, "/api/projects/:project_id/", projectHandler.GetProjectByID)
+	router.HandlerFunc(http.MethodGet, "/api/projects/:project_id/users/:user_id", projectHandler.GetProjectByID)
 	router.HandlerFunc(http.MethodPut, "/api/projects/:project_id/", projectHandler.UpdateProject)
 	router.HandlerFunc(http.MethodDelete, "/api/projects/:project_id/", projectHandler.DeleteProject)
 

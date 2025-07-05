@@ -25,7 +25,15 @@ func NewProjectMemberHandler(projectMemberService ports.ProjectMemberService) *P
 
 
 func (p *ProjectMemberHandler) AddMemberToProject(w http.ResponseWriter, r *http.Request) {
+	// validate that the send of request has the privelege to add a member to the project
+	//....
+
+
+
+	//
+	
 	var input struct {
+		// add data about the send of the request
 		UserID string `json:"user_id"`
 		Role string `json:"role"`
 		Can_edit_project bool `json:"can_edit_project"`
