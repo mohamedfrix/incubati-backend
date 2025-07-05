@@ -66,13 +66,13 @@ func (s *projectMentorService) AssignMentor(ctx context.Context, projectMentor *
 	}
 
 	// Check if user has permission to assign mentors
-	canAssign, err := s.canAssignMentor(ctx, projectMentor.ProjectID, projectMentor.AssignedBy)
-	if err != nil {
-		return nil, fmt.Errorf("failed to check assignment permissions: %w", err)
-	}
-	if !canAssign {
-		return nil, errors.New("user does not have permission to assign mentors to this project")
-	}
+	// canAssign, err := s.canAssignMentor(ctx, projectMentor.ProjectID, projectMentor.AssignedBy)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to check assignment permissions: %w", err)
+	// }
+	// if !canAssign {
+	// 	return nil, errors.New("user does not have permission to assign mentors to this project")
+	// }
 
 	// Set default values
 	if projectMentor.Status == "" {
