@@ -15,26 +15,22 @@ import (
 type ProjectMemberHandler struct {
 	// services here
 	ProjectMemberService ports.ProjectMemberService
+	ProjectService ports.ProjectService
 }
 
-func NewProjectMemberHandler(projectMemberService ports.ProjectMemberService) *ProjectMemberHandler {
+func NewProjectMemberHandler(projectMemberService ports.ProjectMemberService, ProjectService ports.ProjectService) *ProjectMemberHandler {
 	return &ProjectMemberHandler{
 		ProjectMemberService: projectMemberService,
+		ProjectService: ProjectService,
 	}
 }
 
 
-func (p *ProjectMemberHandler) AddMemberToProject(w http.ResponseWriter, r *http.Request) {
-	// validate that the send of request has the privelege to add a member to the project
-	//....
-
-
-
-	//
-	
+func (p *ProjectMemberHandler) AddMemberToProject(w http.ResponseWriter, r *http.Request) {	
 	var input struct {
 		// add data about the send of the request
-		UserID string `json:"user_id"`
+		AssigneeID uuid.UUID `json:"assignee_id"` // the user who is adding the member
+		UserID uuid.UUID `json:"user_id"`
 		Role string `json:"role"`
 		Can_edit_project bool `json:"can_edit_project"`
 		Can_manage_tasks bool `json:"can_manage_tasks"`
@@ -45,6 +41,36 @@ func (p *ProjectMemberHandler) AddMemberToProject(w http.ResponseWriter, r *http
 	if err != nil {
 		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"status": fmt.Sprintf("Invalid json format: %s", err.Error())}, nil)
 		return
+	}
+
+	// get the URL params
+	projectID_str := utils.GetURLparams(r, "project_id")
+
+	projectID_uuid, err := uuid.Parse(projectID_str)
+	if err != nil {	
+		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"status": "Invalid project ID format"}, nil)
+		return
+	}
+
+	// check if the user is allowed to add a member
+	project, err := p.ProjectService.GetProjectByID(projectID_str)
+	if err != nil {
+		utils.WriteJSON(w, r, http.StatusNotFound, utils.Envelope{"status": fmt.Sprintf("Project not found: %s", err.Error())}, nil)
+		return
+	}
+
+	if project == nil || project.OwnerID != input.AssigneeID {
+		// check if the user has permission to add a member
+		permission, err := p.ProjectMemberService.CheckMemberPermissions(projectID_uuid, input.AssigneeID)
+		if err != nil {
+			utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"status": fmt.Sprintf("Failed to check member permissions: %s", err.Error())}, nil)
+			return
+		}
+
+		if !permission.CanManageTasks {
+			utils.WriteJSON(w, r, http.StatusUnauthorized, utils.Envelope{"status": "You do not have permission to add members to this project"}, nil)
+			return
+		}
 	}
 
 
@@ -60,28 +86,13 @@ func (p *ProjectMemberHandler) AddMemberToProject(w http.ResponseWriter, r *http
 		return
 	}
 
-	memberID_uuid, err := uuid.Parse(input.UserID)
-	if err != nil {
-		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"status": "Invalid user ID format"}, nil)
-		return
-	}
-
-
-	// get the URL
-	projectID_str := utils.GetURLparams(r, "project_id")
-
-	projectID_uuid, err := uuid.Parse(projectID_str)
-	if err != nil {	
-		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"status": "Invalid project ID format"}, nil)
-		return
-	}
 
 	var permissions ports.ProjectMemberPermissions
 	permissions.CanEditProject = input.Can_edit_project
 	permissions.CanManageTasks = input.Can_manage_tasks
 	permissions.CanViewReports = input.Can_view_reports
 
-	new_member, err := p.ProjectMemberService.AddMemberToProject(projectID_uuid, memberID_uuid, input.Role, permissions)
+	new_member, err := p.ProjectMemberService.AddMemberToProject(projectID_uuid, input.UserID, input.Role, permissions)
 	if err != nil {
 		utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"status": fmt.Sprintf("Failed to add member to project: %s", err.Error())}, nil)
 		return
