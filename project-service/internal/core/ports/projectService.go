@@ -13,7 +13,7 @@ type ProjectService interface {
 	GetAllProjects(limit, offset int, filters map[string]interface{}, userID uuid.UUID) (*GetAllProjectsResponse, error)
 	UpdateProject(input *domain.UpdateProjectRequest, userID uuid.UUID, projectID uuid.UUID) (*domain.Project, error)
 	DeleteProject(projectID string, userID uuid.UUID) (*string, error)
-	GetProjectStatistics(ctx context.Context, projectID uuid.UUID) (*ProjectStatistics, error)
+	GetProjectStatistics(ctx context.Context, projectID uuid.UUID, userID uuid.UUID)  (*ProjectStatistics, error)
 }
 
 // CompleteProjectResponse represents the complete response for project creation

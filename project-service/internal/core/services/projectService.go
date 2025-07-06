@@ -352,7 +352,7 @@ func (p *ProjectService) DeleteProject(projectID string, userID uuid.UUID) (*str
 	return title, nil
 }
 
-func (p *ProjectService) GetProjectStatistics(ctx context.Context, projectID uuid.UUID) (*ports.ProjectStatistics, error) {
+func (p *ProjectService) GetProjectStatistics(ctx context.Context, projectID uuid.UUID, userID uuid.UUID) (*ports.ProjectStatistics, error) {
 	// Get basic project information
 	project, err := p.ProjectRepo.GetProjectByID(projectID)
 	if err != nil {
@@ -362,7 +362,21 @@ func (p *ProjectService) GetProjectStatistics(ctx context.Context, projectID uui
 		return nil, fmt.Errorf("project not found")
 	}
 
+	// check permission:
+	permissions, err := p.ProjectMemberService.CheckMemberPermissions(project.ID, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check permissions: %w", err)
+	}
 
+	pctx := &domain.PermissionContext{
+		IsAuthenticated: true, // this should be set based on actual authentication logic
+		Owner: project.OwnerID == projectID, // assuming the owner is the user who created
+		IsMember: permissions.IsMember,
+	}
+
+	if !pctx.CanViewReports(){
+		return nil, domain.ErrNotAuthorized
+	}
 	// Prepare project info
 	projectInfo := ports.ProjectInfo{
 		ID:                 project.ID,

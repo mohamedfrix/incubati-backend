@@ -16,6 +16,7 @@ var (
 type PermissionContext struct {
 	IsAuthenticated bool 
 	Owner bool
+	IsMember bool
 	CanEditProject bool
 	CanManageTasks bool
 }
@@ -77,3 +78,14 @@ func (p *PermissionContext) CanAssignMentor() bool {
 	return true
 }
 
+func (p *PermissionContext) CanViewReports() bool {
+	if !p.IsAuthenticated {
+		return false
+	}
+
+	if !p.Owner && !p.IsMember {
+		return false
+	}
+
+	return true
+}

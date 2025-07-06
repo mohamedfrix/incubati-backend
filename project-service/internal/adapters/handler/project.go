@@ -154,7 +154,6 @@ func (p *ProjectHandler) GetProjectStatistics(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	// check permission:
 	// get the user id:
 	userID_str := r.Header.Get("user_id")
 	userID_uuid, err := uuid.Parse(userID_str)
@@ -185,7 +184,7 @@ func (p *ProjectHandler) GetProjectStatistics(w http.ResponseWriter, r *http.Req
 	}
 
 	// Get project statistics
-	statistics, err := p.project_service.GetProjectStatistics(r.Context(), projectID)
+	statistics, err := p.project_service.GetProjectStatistics(r.Context(), projectID, userID_uuid)
 	if err != nil {
 		utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": err.Error()}, nil)
 		return
