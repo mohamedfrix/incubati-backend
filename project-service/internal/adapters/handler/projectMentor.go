@@ -60,7 +60,7 @@ func (h *ProjectMentorHandler) AddMentorToProject(w http.ResponseWriter, r *http
 		return
 	}
 	if !permissions.CanManageTasks {
-		project, err := h.ProjectService.GetProjectByID(projectID_str)
+		project, err := h.ProjectService.GetProjectByID(projectID_str, input.UserID)
 		if err != nil {
 			utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": "failed to get project"}, nil)
 			return

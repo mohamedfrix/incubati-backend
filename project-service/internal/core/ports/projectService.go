@@ -8,11 +8,11 @@ import (
 )
 
 type ProjectService interface {
-	CreateProject(*domain.Project) (*CompleteProjectResponse, error) 
-	GetProjectByID(projectID string) (*domain.Project, error)
-	GetAllProjects(limit, offset int, filters map[string]interface{}) (*GetAllProjectsResponse, error)
-	UpdateProject(project *domain.Project) (*domain.Project, error)
-	DeleteProject(projectID string) (*string, error)
+	CreateProject(input *domain.CreateProjectRequest, userID uuid.UUID) (*CompleteProjectResponse, error) 
+	GetProjectByID(projectID string, userID uuid.UUID)  (*domain.Project, error)
+	GetAllProjects(limit, offset int, filters map[string]interface{}, userID uuid.UUID) (*GetAllProjectsResponse, error)
+	UpdateProject(input *domain.UpdateProjectRequest, userID uuid.UUID, projectID uuid.UUID) (*domain.Project, error)
+	DeleteProject(projectID string, userID uuid.UUID) (*string, error)
 	GetProjectStatistics(ctx context.Context, projectID uuid.UUID) (*ProjectStatistics, error)
 }
 

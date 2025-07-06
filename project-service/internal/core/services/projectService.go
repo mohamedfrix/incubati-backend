@@ -8,12 +8,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/moulaybdl/incubAT/project_service/internal/core/domain"
 	"github.com/moulaybdl/incubAT/project_service/internal/core/ports"
+	"github.com/moulaybdl/incubAT/project_service/pkg/utils"
 )
 
 type ProjectService struct {
 	// include here any repos:
 	ProjectRepo        ports.ProjectRepo
 	ProjectMemberRepo  ports.ProjectMemberRepo
+	ProjectMemberService ports.ProjectMemberService
 	MilestoneService   ports.MilestoneService
 	KPIService         ports.KPIService
 	ProjectMentorRepo  ports.ProjectMentorRepo
@@ -29,10 +31,12 @@ func NewProjectService(
 	projectMentorRepo ports.ProjectMentorRepo,
 	activityRepo ports.ProjectActivityRepo,
 	documentRepo ports.ProjectDocumentRepo,
+	ProjectMemberService ports.ProjectMemberService,
 ) *ProjectService {
 	return &ProjectService{
 		ProjectRepo:       projectRepo,
 		ProjectMemberRepo: projectMemberRepo,
+		ProjectMemberService: ProjectMemberService,
 		MilestoneService:  milestoneService,
 		KPIService:        kpiService,
 		ProjectMentorRepo: projectMentorRepo,
@@ -42,9 +46,57 @@ func NewProjectService(
 }
 
 
-func (p* ProjectService) CreateProject(pr *domain.Project) (*ports.CompleteProjectResponse, error) {
+func (p* ProjectService) CreateProject(input *domain.CreateProjectRequest, userID uuid.UUID) (*ports.CompleteProjectResponse, error) {
+
+	// validate input
+	// initialize Project struct:
+	var project domain.Project
+	project.Title = input.Title
+	project.Description = &input.Description
+	project.Domain = input.Domain
+	project.Status = input.Status
+	project.OwnerID = input.UserID
+	project.CreatedBy = input.UserID
+	project.UpdatedBy = &input.UserID
+
+	s_date, err := utils.FromStringToTime(input.StartDate)
+	if err != nil {
+		return nil, domain.ErrInvalidDateFormat
+	}
+	project.StartDate = *s_date
+
+	e_date, err := utils.FromStringToTime(input.EndDate)
+	if err != nil {
+		return nil, domain.ErrInvalidDateFormat
+	}
+	project.EndDate = *e_date
+
+	project.ProgressPercentage = input.ProgressPercentage
+	project.IsPublic = input.IsPublic
+
+	// validate the input of needed 
+	validator := domain.ProjectValidator{}
+	validator.Validate(&project)
+
+	// check if any errors:
+
+	if !validator.CheckValid() {
+		return nil, domain.ErrInvalidInputData
+	}
+
+	// check permission:
+	pctx := &domain.PermissionContext{
+		IsAuthenticated: true, // this should be set based on actual authentication logic
+	}
+
+	if !pctx.CanCreateProject() {
+		return nil, domain.ErrNotAuthorized
+	}
+
+
+
 	// Create the project in the repository
-	createdProject, err := p.ProjectRepo.CreateProject(pr)
+	createdProject, err := p.ProjectRepo.CreateProject(&project)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create project: %w", err)
 	}
@@ -176,21 +228,91 @@ func (p* ProjectService) CreateProject(pr *domain.Project) (*ports.CompleteProje
 	return response, nil
 }
 
-func (p *ProjectService) GetProjectByID(projectID string) (*domain.Project, error) {
+func (p *ProjectService) GetProjectByID(projectID string, userID uuid.UUID) (*domain.Project, error) {
 	id, err := uuid.Parse(projectID) 
 	if err != nil {
 		return nil, err
 	}
-
+	
 	project, err := p.ProjectRepo.GetProjectByID(id)
 	if err != nil {
 		return nil, err
 	}
+	// check the permission:
+	if !project.IsPublic {
+		// 2. verify if the user is a member
+		permission, err := p.ProjectMemberService.CheckMemberPermissions(project.ID, userID)
+		if err != nil {
+				return nil, err
+		}
+		if !permission.IsMember {
+			return nil, domain.ErrNotAuthorized
+		}
+	}
+
 	return project, nil
 }
 
 
-func (p *ProjectService) UpdateProject(project *domain.Project) (*domain.Project, error) {
+func (p *ProjectService) UpdateProject(input *domain.UpdateProjectRequest, userID uuid.UUID, projectID uuid.UUID) (*domain.Project, error) {
+	// check if project exits:
+	project, err := p.ProjectRepo.GetProjectByID(projectID)
+	if err != nil {
+		return nil, domain.ErrProjectNotFound
+	}
+
+
+	// validate project data:
+	project.Title = input.Title
+	project.Description = &input.Description
+	project.Domain = input.Domain
+	project.Status = input.Status
+	project.UpdatedBy = &input.UserID
+
+	s_date, err := utils.FromStringToTime(input.StartDate)
+	if err != nil {
+		return nil, domain.ErrInvalidDateFormat
+	}
+	project.StartDate = *s_date
+
+	e_date, err := utils.FromStringToTime(input.EndDate)
+	if err != nil {
+		return nil, domain.ErrInvalidDateFormat
+	}
+	project.EndDate = *e_date
+
+	project.ProgressPercentage = input.ProgressPercentage
+	project.IsPublic = input.IsPublic
+
+
+	// validate the input of needed 
+	validator := domain.ProjectValidator{}
+	validator.Validate(project)
+
+	// check if any errors:
+
+	if !validator.CheckValid() {
+		return nil, domain.ErrInvalidInputData
+	}
+
+	// check permission:
+	permission, err := p.ProjectMemberService.CheckMemberPermissions(project.ID, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check permissions: %w", err)
+	}
+
+	// check if he is the owner or can edit
+	pctx := &domain.PermissionContext{
+		IsAuthenticated: permission.IsMember, 
+		Owner: project.OwnerID == userID,
+		CanEditProject: permission.CanEditProject,
+	}
+
+
+	if !pctx.CanUpdateProject() {
+		return nil, domain.ErrNotAuthorized
+	}
+
 	// Call the repository method to update the project
 	updatedProject, err := p.ProjectRepo.UpdateProject(project)
 	if err != nil {
@@ -201,10 +323,26 @@ func (p *ProjectService) UpdateProject(project *domain.Project) (*domain.Project
 }
 
 
-func (p *ProjectService) DeleteProject(projectID string) (*string, error) {
+func (p *ProjectService) DeleteProject(projectID string, userID uuid.UUID) (*string, error) {
 	id, err := uuid.Parse(projectID)
 	if err != nil {
 		return nil, err
+	}
+
+	// check if project exists:
+	project, err := p.ProjectRepo.GetProjectByID(id)
+	if err != nil {
+		return nil, domain.ErrProjectNotFound
+	}
+
+	// check permission:
+	pctx := &domain.PermissionContext{
+		IsAuthenticated: true, // this should be set based on actual authentication logic
+		Owner: project.OwnerID == userID, // assuming the owner is the user who created
+	}	
+
+	if !pctx.CanDeleteProject() {
+		return nil, domain.ErrNotAuthorized
 	}
 
 	title, err := p.ProjectRepo.DeleteProject(id)
@@ -301,7 +439,7 @@ func (p *ProjectService) GetProjectStatistics(ctx context.Context, projectID uui
 	return statistics, nil
 }
 
-func (p *ProjectService) GetAllProjects(limit, offset int, filters map[string]interface{}) (*ports.GetAllProjectsResponse, error) {
+func (p *ProjectService) GetAllProjects(limit, offset int, filters map[string]interface{}, userID uuid.UUID) (*ports.GetAllProjectsResponse, error) {
 	// Get projects from repository
 	projects, totalCount, err := p.ProjectRepo.GetAllProjects(limit, offset, filters)
 	if err != nil {
@@ -329,6 +467,16 @@ func (p *ProjectService) GetAllProjects(limit, offset int, filters map[string]in
 		}
 	}
 
+	// Filter projects based on permissions - only include public projects or projects owned by the user
+	var filteredProjects []ports.ProjectSummary
+	for _, project := range projectSummaries {
+		// Include project if it's public OR if the user is the owner
+		if project.IsPublic || project.OwnerID == userID {
+			filteredProjects = append(filteredProjects, project)
+		}
+	}
+
+
 	// Calculate pagination
 	totalPages := (totalCount + limit - 1) / limit // Ceiling division
 	currentPage := (offset / limit) + 1
@@ -341,7 +489,7 @@ func (p *ProjectService) GetAllProjects(limit, offset int, filters map[string]in
 	}
 
 	response := &ports.GetAllProjectsResponse{
-		Projects:   projectSummaries,
+		Projects:   filteredProjects,
 		Pagination: pagination,
 	}
 

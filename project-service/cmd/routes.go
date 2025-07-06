@@ -21,8 +21,8 @@ func InitRoutes(db *repository.DB) *httprouter.Router {
 	// define services
 	milestoneService := services.NewMilestoneService(db, db)
 	kpiService := services.NewKPIService(db, db)
-	projectService := services.NewProjectService(db, db, milestoneService, kpiService, db, db, db)
 	projectMemberService := services.NewProjectMemberService(db, db)
+	projectService := services.NewProjectService(db, db, milestoneService, kpiService, db, db, db, projectMemberService)
 	projectMentorService := services.NewProjectMentorService(db, db, db, db)
 
 	// define handlers

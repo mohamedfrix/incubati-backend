@@ -51,3 +51,30 @@ func (p *ProjectValidator) Validate(pr *Project) {
 }
 
 
+type CreateProjectRequest struct {
+	UserID uuid.UUID `json:"user_id"`
+	Title string `json:"title"`
+	Description string `json:"description"`
+	Domain string `json:"domain"`
+	Status string `json:"status"`
+	StartDate string `json:"start_date"`
+	EndDate string `json:"end_date"`
+	ProgressPercentage int `json:"progress_percentage"`
+	IsPublic bool `json:"is_public"`
+}
+
+type UpdateProjectRequest struct {
+	UserID uuid.UUID `json:"user_id"`
+	Title string `json:"title"`
+	Description string `json:"description"`
+	Domain string `json:"domain"`
+	Status string `json:"status"`
+	StartDate string `json:"start_date"`
+	EndDate string `json:"end_date"`
+	ProgressPercentage int `json:"progress_percentage"`
+	IsPublic bool `json:"is_public"`
+}
+
+
+
+

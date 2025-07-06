@@ -53,7 +53,7 @@ func (p *ProjectMemberHandler) AddMemberToProject(w http.ResponseWriter, r *http
 	}
 
 	// check if the user is allowed to add a member
-	project, err := p.ProjectService.GetProjectByID(projectID_str)
+	project, err := p.ProjectService.GetProjectByID(projectID_str, input.AssigneeID)
 	if err != nil {
 		utils.WriteJSON(w, r, http.StatusNotFound, utils.Envelope{"status": fmt.Sprintf("Project not found: %s", err.Error())}, nil)
 		return
