@@ -39,6 +39,13 @@ func (p *ProjectMemberValidator) Validate(pm *ProjectMember) {
 		p.Errors = append(p.Errors, map[string]string{"role": "not a valid value"})
 		return
 	}
+}
 
-	
+type AddProjectMemberRequest struct {
+		AssigneeID uuid.UUID `json:"assignee_id"` // the user who is adding the member
+		UserID uuid.UUID `json:"user_id"`
+		Role string `json:"role"`
+		Can_edit_project bool `json:"can_edit_project"`
+		Can_manage_tasks bool `json:"can_manage_tasks"`
+		Can_view_reports bool `json:"can_view_reports"`
 }

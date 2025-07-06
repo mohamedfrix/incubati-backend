@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/moulaybdl/incubAT/project_service/internal/core/domain"
 	"github.com/moulaybdl/incubAT/project_service/internal/core/ports"
+	"github.com/moulaybdl/incubAT/project_service/pkg/utils"
 )
 
 type projectMentorService struct {
@@ -16,22 +17,51 @@ type projectMentorService struct {
 	projectRepo       ports.ProjectRepo
 	mentorRepo        ports.MentorRepo
 	projectMemberRepo ports.ProjectMemberRepo
+	ProjectMemberService ports.ProjectMemberService
 }
 
 // NewProjectMentorService creates a new project mentor service
-func NewProjectMentorService(projectMentorRepo ports.ProjectMentorRepo, projectRepo ports.ProjectRepo, mentorRepo ports.MentorRepo, projectMemberRepo ports.ProjectMemberRepo) ports.ProjectMentorService {
+func NewProjectMentorService(projectMentorRepo ports.ProjectMentorRepo, projectRepo ports.ProjectRepo, mentorRepo ports.MentorRepo, projectMemberRepo ports.ProjectMemberRepo, ProjectMemberService ports.ProjectMemberService) ports.ProjectMentorService {
 	return &projectMentorService{
 		projectMentorRepo: projectMentorRepo,
 		projectRepo:       projectRepo,
 		mentorRepo:        mentorRepo,
 		projectMemberRepo: projectMemberRepo,
+		ProjectMemberService: ProjectMemberService,
 	}
 }
 
 // AssignMentor assigns a mentor to a project
-func (s *projectMentorService) AssignMentor(ctx context.Context, projectMentor *domain.ProjectMentor) (*domain.ProjectMentor, error) {
+func (s *projectMentorService) AssignMentor(ctx context.Context, input domain.AddProjectMentorRequest, projectID uuid.UUID) (*domain.ProjectMentor, error) {
+	// retrieve the mentor:
+	// create projectMentor object:
+	var projectMentor domain.ProjectMentor
+	mentorID, err := uuid.Parse(input.Mentor)
+	if err != nil {
+		return nil, fmt.Errorf("invalid mentor ID: %w", err)
+	}
+	projectMentor.MentorID = mentorID
+	projectMentor.MentorshipType = input.Mentorship
+
+	s_date, err := utils.FromStringToTime(input.StartDate)
+	if err != nil {
+		return nil, domain.ErrInvalidDateFormat
+	}
+	projectMentor.StartDate = *s_date
+
+	e_date, err := utils.FromStringToTime(input.EndDate)
+	if err != nil {
+		return nil, domain.ErrInvalidDateFormat
+	}
+	projectMentor.EndDate = e_date
+
+	projectMentor.HoursCommitted = input.HoursCommitted
+
+	projectMentor.ProjectID = projectID
+
+	projectMentor.AssignedBy = input.UserID
 	// Validate the project mentor assignment
-	if err := s.ValidateProjectMentor(ctx, projectMentor); err != nil {
+	if err := s.ValidateProjectMentor(ctx, &projectMentor); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
@@ -65,15 +95,6 @@ func (s *projectMentorService) AssignMentor(ctx context.Context, projectMentor *
 		return nil, errors.New("mentor is already assigned to this project")
 	}
 
-	// Check if user has permission to assign mentors
-	// canAssign, err := s.canAssignMentor(ctx, projectMentor.ProjectID, projectMentor.AssignedBy)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to check assignment permissions: %w", err)
-	// }
-	// if !canAssign {
-	// 	return nil, errors.New("user does not have permission to assign mentors to this project")
-	// }
-
 	// Set default values
 	if projectMentor.Status == "" {
 		projectMentor.Status = "pending"
@@ -83,8 +104,23 @@ func (s *projectMentorService) AssignMentor(ctx context.Context, projectMentor *
 	}
 	projectMentor.IsActive = true
 
+	// check permission:
+	permissions, err := s.ProjectMemberService.CheckMemberPermissions(project.ID, input.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check permissions: %w", err)
+	}
+
+	pctx := domain.PermissionContext{
+		IsAuthenticated: true,
+		CanManageTasks: permissions.CanManageTasks,
+	}
+
+	if !pctx.CanAssignMentor() {
+		return nil, domain.ErrNotAuthorized
+	}
+
 	// Assign the mentor
-	assignedMentor, err := s.projectMentorRepo.AssignMentor(projectMentor)
+	assignedMentor, err := s.projectMentorRepo.AssignMentor(&projectMentor)
 	if err != nil {
 		return nil, fmt.Errorf("failed to assign mentor: %w", err)
 	}

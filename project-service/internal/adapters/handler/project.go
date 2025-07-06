@@ -51,7 +51,17 @@ func (p *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 		CanViewReports: true,
 	}
 	
-	_, err = p.projectMember_service.AddMemberToProject(response.ID, input.UserID, "manager", permissions)
+	var inputMember domain.AddProjectMemberRequest
+	inputMember.AssigneeID = input.UserID // the user who is adding the member
+	inputMember.UserID = input.UserID // the user who is being added
+	inputMember.Role = "manager" // the role of the user who is being added
+	inputMember.Can_edit_project = true
+	inputMember.Can_manage_tasks = true
+	inputMember.Can_view_reports = true
+
+
+
+	_, err = p.projectMember_service.AddMemberToProject(inputMember, response.ID, input.UserID, "manager", permissions)
 	if err != nil {
 		// Log the error but don't fail the project creation
 		fmt.Printf("Warning: Failed to add creator as project manager: %v\n", err)

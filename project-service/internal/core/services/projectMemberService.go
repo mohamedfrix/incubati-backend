@@ -22,16 +22,34 @@ func NewProjectMemberService(memberRepo ports.ProjectMemberRepo, projectRepo por
 	}
 }
 
-func (s *ProjectMemberService) AddMemberToProject(projectID, userID uuid.UUID, role string, permissions ports.ProjectMemberPermissions) (*domain.ProjectMember, error) {
+func (s *ProjectMemberService) AddMemberToProject(input domain.AddProjectMemberRequest, projectID, userID uuid.UUID, role string, permissions ports.ProjectMemberPermissions) (*domain.ProjectMember, error) {
 	// Validate role
 	if err := s.ValidateMemberRole(role); err != nil {
 		return nil, err
 	}
 
-	// Check if project exists
-	_, err := s.projectRepo.GetProjectByID(projectID)
+	// check if the user is allowed to add a member
+	project, err := s.projectRepo.GetProjectByID(projectID)
 	if err != nil {
-		return nil, fmt.Errorf("project not found: %w", err)
+		return nil, domain.ErrProjectNotFound
+	}
+
+	if project == nil || project.OwnerID != input.AssigneeID {
+		// check if the user has permission to add a member
+		permission, err := s.CheckMemberPermissions(projectID, input.AssigneeID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check member permissions: %w", err)
+		}
+
+		pctx := domain.PermissionContext{
+			IsAuthenticated: true,
+			Owner: project.OwnerID == input.AssigneeID,
+			CanManageTasks: permission.CanManageTasks,
+		}
+
+		if !pctx.CanAddMember() {
+			return nil, domain.ErrNotAuthorized
+		}
 	}
 
 	// Check if user is already a member

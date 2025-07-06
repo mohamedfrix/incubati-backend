@@ -10,7 +10,7 @@ import (
 // ProjectMentorService defines the interface for project mentor business logic
 type ProjectMentorService interface {
 	// AssignMentor assigns a mentor to a project
-	AssignMentor(ctx context.Context, projectMentor *domain.ProjectMentor) (*domain.ProjectMentor, error)
+	AssignMentor(ctx context.Context, input domain.AddProjectMentorRequest, projectID uuid.UUID) (*domain.ProjectMentor, error)
 	
 	// UpdateProjectMentor updates an existing project mentor assignment
 	UpdateProjectMentor(ctx context.Context, projectMentor *domain.ProjectMentor) (*domain.ProjectMentor, error)

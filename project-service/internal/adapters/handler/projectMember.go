@@ -27,15 +27,7 @@ func NewProjectMemberHandler(projectMemberService ports.ProjectMemberService, Pr
 
 
 func (p *ProjectMemberHandler) AddMemberToProject(w http.ResponseWriter, r *http.Request) {	
-	var input struct {
-		// add data about the send of the request
-		AssigneeID uuid.UUID `json:"assignee_id"` // the user who is adding the member
-		UserID uuid.UUID `json:"user_id"`
-		Role string `json:"role"`
-		Can_edit_project bool `json:"can_edit_project"`
-		Can_manage_tasks bool `json:"can_manage_tasks"`
-		Can_view_reports bool `json:"can_view_reports"`
-	}
+	var input domain.AddProjectMemberRequest
 
 	err := utils.ReadJSON(w, r, &input)
 	if err != nil {
@@ -92,7 +84,7 @@ func (p *ProjectMemberHandler) AddMemberToProject(w http.ResponseWriter, r *http
 	permissions.CanManageTasks = input.Can_manage_tasks
 	permissions.CanViewReports = input.Can_view_reports
 
-	new_member, err := p.ProjectMemberService.AddMemberToProject(projectID_uuid, input.UserID, input.Role, permissions)
+	new_member, err := p.ProjectMemberService.AddMemberToProject(input, projectID_uuid, input.UserID, input.Role, permissions, )
 	if err != nil {
 		utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"status": fmt.Sprintf("Failed to add member to project: %s", err.Error())}, nil)
 		return

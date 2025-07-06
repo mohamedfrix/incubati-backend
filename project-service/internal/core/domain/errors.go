@@ -17,6 +17,7 @@ type PermissionContext struct {
 	IsAuthenticated bool 
 	Owner bool
 	CanEditProject bool
+	CanManageTasks bool
 }
 
 
@@ -51,3 +52,28 @@ func (p *PermissionContext) CanDeleteProject() bool {
 
 	return true
 }
+
+func (p *PermissionContext) CanAddMember() bool {
+	if !p.IsAuthenticated {
+		return false
+	}
+
+	if !p.Owner && !p.CanManageTasks {
+		return false
+	}
+
+	return true
+}
+
+func (p *PermissionContext) CanAssignMentor() bool {
+	if !p.IsAuthenticated {
+		return false
+	}
+
+	if !p.Owner && !p.CanManageTasks {
+		return false
+	}
+
+	return true
+}
+

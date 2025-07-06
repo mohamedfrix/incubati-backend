@@ -3,10 +3,11 @@ package ports
 import (
 	"github.com/google/uuid"
 	"github.com/moulaybdl/incubAT/project_service/internal/core/domain"
+
 )
 
 type ProjectMemberService interface {
-	AddMemberToProject(projectID, userID uuid.UUID, role string, permissions ProjectMemberPermissions) (*domain.ProjectMember, error)
+	AddMemberToProject(input domain.AddProjectMemberRequest, projectID, userID uuid.UUID, role string, permissions ProjectMemberPermissions) (*domain.ProjectMember, error)
 	UpdateMemberRole(memberID uuid.UUID, role string, permissions ProjectMemberPermissions) (*domain.ProjectMember, error)
 	RemoveMemberFromProject(memberID uuid.UUID) error
 	DeactivateMember(memberID uuid.UUID) (*domain.ProjectMember, error)

@@ -28,14 +28,7 @@ func NewProjectMentorHandler(projectMentorService ports.ProjectMentorService, Pr
 
 
 func (h *ProjectMentorHandler) AddMentorToProject(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		UserID uuid.UUID `json:"assignee_id"`
-		Mentor string `json:"mentor"`
-		Mentorship string `json:"mentorship"`
-		StartDate string `json:"start_date"`
-		EndDate string `json:"end_date"`
-		HoursCommitted int `json:"hours_committed"`
-	}
+	var input domain.AddProjectMentorRequest
 
 	err := utils.ReadJSON(w, r, &input)
 	if err != nil {
@@ -72,39 +65,8 @@ func (h *ProjectMentorHandler) AddMentorToProject(w http.ResponseWriter, r *http
 	}
 
 
-	// create projectMentor object:
-	var projectMentor domain.ProjectMentor
-	mentorID, err := uuid.Parse(input.Mentor)
-	if err != nil {
-		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"error": "invalid mentor ID"}, nil)
-		return
-	}
-	projectMentor.MentorID = mentorID
-	projectMentor.MentorshipType = input.Mentorship
-
-	s_date, err := utils.FromStringToTime(input.StartDate)
-	if err != nil {
-		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"error": "invalid start date format"}, nil)
-		return
-	}
-	projectMentor.StartDate = *s_date
-
-	e_date, err := utils.FromStringToTime(input.EndDate)
-	if err != nil {
-		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"error": "invalid end date format"}, nil)
-		return
-	}
-	projectMentor.EndDate = e_date
-
-	projectMentor.HoursCommitted = input.HoursCommitted
-
-	projectMentor.ProjectID = projectID_uuid
-
-	projectMentor.AssignedBy = input.UserID
-
-
 	// assign the mentor:
-	pMentor, err := h.ProjectMentorService.AssignMentor(r.Context(), &projectMentor)
+	pMentor, err := h.ProjectMentorService.AssignMentor(r.Context(), input, projectID_uuid)
 	if err != nil {
 		utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": err.Error()}, nil)
 		return

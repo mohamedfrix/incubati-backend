@@ -20,3 +20,12 @@ type ProjectMentor struct {
 	CreatedAt       time.Time  `json:"created_at" db:"created_at"`
 	UpdatedAt       time.Time  `json:"updated_at" db:"updated_at"`
 }
+
+type AddProjectMentorRequest struct {
+	UserID uuid.UUID `json:"assignee_id"`
+	Mentor string `json:"mentor"`
+	Mentorship string `json:"mentorship"`
+	StartDate string `json:"start_date"`
+	EndDate string `json:"end_date"`
+	HoursCommitted int `json:"hours_committed"`
+}
