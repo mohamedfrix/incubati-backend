@@ -155,7 +155,7 @@ func (p *ProjectHandler) GetProjectStatistics(w http.ResponseWriter, r *http.Req
 	}
 
 	// get the user id:
-	userID_str := r.Header.Get("user_id")
+	userID_str := utils.GetURLparams(r, "user_id")
 	userID_uuid, err := uuid.Parse(userID_str)
 	if err != nil {
 		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"error": "Invalid user ID format"}, nil)

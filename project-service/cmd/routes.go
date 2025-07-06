@@ -37,7 +37,7 @@ func InitRoutes(db *repository.DB) *httprouter.Router {
 	router.HandlerFunc(http.MethodDelete, "/api/projects/:project_id/", projectHandler.DeleteProject)
 
 	
-	router.HandlerFunc(http.MethodGet, "/api/projects/:project_id/statistics/", projectHandler.GetProjectStatistics)
+	router.HandlerFunc(http.MethodGet, "/api/projects/:project_id/statistics/:user_id", projectHandler.GetProjectStatistics)
 
 	router.HandlerFunc(http.MethodPost, "/api/projects/:project_id/members/", projectMemberHandler.AddMemberToProject)
 	
