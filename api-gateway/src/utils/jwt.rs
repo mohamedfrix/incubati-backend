@@ -13,7 +13,7 @@ pub struct Claims {
 }
 
 /// Create a JWT access token
-pub fn create_access_token(user_id: Uuid, email: &str, role: &str, secret: &str, expires_in_minutes: i64) -> String {
+pub fn create_access_token(user_id: Uuid, email: &str, role: &str, secret: &str, expires_in_minutes: i64) -> Result<String, jsonwebtoken::errors::Error> {
     let expiration = Utc::now() + Duration::minutes(expires_in_minutes);
     let claims = Claims {
         sub: user_id,
@@ -21,11 +21,11 @@ pub fn create_access_token(user_id: Uuid, email: &str, role: &str, secret: &str,
         role: role.to_owned(),
         exp: expiration.timestamp() as usize,
     };
-    encode(&Header::default(), &claims, &EncodingKey::from_secret(secret.as_ref())).unwrap()
+    encode(&Header::default(), &claims, &EncodingKey::from_secret(secret.as_ref()))
 }
 
 /// Create a JWT refresh token
-pub fn create_refresh_token(user_id: Uuid, email: &str, role: &str, secret: &str, expires_in_minutes: i64) -> String {
+pub fn create_refresh_token(user_id: Uuid, email: &str, role: &str, secret: &str, expires_in_minutes: i64) -> Result<String, jsonwebtoken::errors::Error> {
     let expiration = Utc::now() + Duration::minutes(expires_in_minutes);
     let claims = Claims {
         sub: user_id,
@@ -33,7 +33,7 @@ pub fn create_refresh_token(user_id: Uuid, email: &str, role: &str, secret: &str
         role: role.to_owned(),
         exp: expiration.timestamp() as usize,
     };
-    encode(&Header::default(), &claims, &EncodingKey::from_secret(secret.as_ref())).unwrap()
+    encode(&Header::default(), &claims, &EncodingKey::from_secret(secret.as_ref()))
 }
 
 /// Validate a JWT and return the claims

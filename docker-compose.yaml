@@ -1,5 +1,6 @@
 version: '3.8'
 services:
+  # PostgreSQL database for API Gateway
   db:
     image: postgres:latest
     container_name: api-gateway-db
@@ -7,10 +8,12 @@ services:
       POSTGRES_USER: frix
       POSTGRES_PASSWORD: 07vk640xz
       POSTGRES_DB: hehe
-    ports:
-      - "7000:5432"
     volumes:
       - ./volumes/api-gateway-db_data:/var/lib/postgresql/data
+    networks:
+      - incubati_backend_network
+
+  # PostgreSQL database for Application Service  
   application-service-db:
     container_name: application-service-db
     image: postgres:latest
@@ -18,25 +21,123 @@ services:
       POSTGRES_USER: frix
       POSTGRES_PASSWORD: 07vk640xz
       POSTGRES_DB: hehe
-    ports:
-      - "7001:5432"
     volumes:
       - ./volumes/application-service-db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U frix -d hehe"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - incubati_backend_network
       
+  # MinIO Object Storage
   minio:
     container_name: incubati-minio
     image: minio/minio:latest
-    ports:
-      - "9000:9000"
-      - "9001:9001"
     environment:
       MINIO_ROOT_USER: frix
       MINIO_ROOT_PASSWORD: 07vk640xz
+      # Configure MinIO to work behind reverse proxy
+      # Internal server URL for console authentication (container network)
+      MINIO_SERVER_URL: http://minio:9000
+      # External URL for browser redirects (through nginx on port 5000)
+      MINIO_BROWSER_REDIRECT_URL: ${EXTERNAL_URL:-http://localhost:5000}/minio-console
     volumes:
       - ./volumes/minio_data:/data
     command: server /data --console-address ":9001"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
+      interval: 10s
+      timeout: 5s
       retries: 3
+      start_period: 20s
+    networks:
+      - incubati_backend_network
+    
+  # Application Service
+  application-service:
+    container_name: application-service
+    build:
+      context: ./application-service
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://frix:07vk640xz@application-service-db:5432/hehe
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 4001
+      GRPC_PORT: 50051
+      UPLOAD_DIR: ./uploads
+      MAX_FILE_SIZE: 10485760
+      CORS_ORIGINS: "*"
+      LOG_LEVEL: debug
+      # Internal MinIO endpoint for direct communication
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: frix
+      MINIO_SECRET_KEY: 07vk640xz
+      MINIO_REGION: us-east-1
+      MINIO_USE_SSL: "false"
+      MINIO_DOCUMENTS_BUCKET: documents
+      MINIO_TEMP_BUCKET: temp-files
+      MINIO_DOWNLOAD_URL_EXPIRY_SECONDS: 3600
+      # External URL base for generating client-accessible download URLs
+      EXTERNAL_URL_BASE: ${EXTERNAL_URL:-http://localhost:5000}/storage
+    networks:
+      - incubati_backend_network
+    depends_on:
+      minio:
+        condition: service_healthy
+      application-service-db:
+        condition: service_healthy
+
+  # API Gateway
+  api-gateway:
+    container_name: api-gateway
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://frix:07vk640xz@db:5432/hehe
+      JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 465
+      SMTP_USERNAME: your-email@gmail.com
+      SMTP_PASSWORD: your-app-password
+      FROM_EMAIL: noreply@example.com
+      APP_NAME: "Incubati API Gateway"
+      ACCESS_TOKEN_EXPIRY_MINUTES: 60
+      REFRESH_TOKEN_EXPIRY_MINUTES: 43200
+      # gRPC connection configuration
+      GRPC_APPLICATION_SERVICE_URL: http://application-service:50051
+      # Admin user configuration - change these in production!
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@incubati.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123456}
+      ADMIN_NOM: ${ADMIN_NOM:-Admin}
+      ADMIN_PRENOM: ${ADMIN_PRENOM:-Administrator}
+    networks:
+      - incubati_backend_network
+    depends_on:
+      - application-service
+      - db
+
+  # Nginx Reverse Proxy
+  nginx:
+    container_name: incubati-nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "5000:80"
+    networks:
+      - incubati_backend_network
+    depends_on:
+      - api-gateway
+      - application-service
+      - minio
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+networks:
+  incubati_backend_network:
+    driver: bridge

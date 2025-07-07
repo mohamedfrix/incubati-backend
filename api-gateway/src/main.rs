@@ -7,14 +7,19 @@ mod dto;
 mod routes;
 mod utils;
 mod middleware;
+mod startup;
+mod seeder;
 
 use crate::config::Config;
+use crate::startup::initialize_database;
 use axum::serve;
 use tokio::net::TcpListener;
 use tracing_subscriber::fmt;
 use tracing_subscriber::EnvFilter;
 use tracing::{info, debug, warn, error};
 use std::net::SocketAddr;
+use sqlx::postgres::PgPoolOptions;
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
@@ -29,20 +34,43 @@ async fn main() {
     let config = Config::from_env();
     debug!(?config, "Loaded configuration");
 
-    // Build the Axum app with all routes
+    // Connect to database
     debug!("Connecting to database...");
-    let app = app::create_app(
-        &config.database_url,
-        &config.jwt_secret,
-        config.access_token_expiry_minutes,
-        config.refresh_token_expiry_minutes,
-    ).await;
+    let pool = Arc::new(
+        PgPoolOptions::new()
+            .max_connections(5)
+            .connect(&config.database_url)
+            .await
+            .expect("Failed to connect to database"),
+    );
+    info!("Database connection established");
+
+    // Initialize database (migrations + admin user)
+    match initialize_database(pool.clone()).await {
+        Ok(()) => info!("Database initialization completed successfully"),
+        Err(e) => {
+            error!("Failed to initialize database: {}", e);
+            std::process::exit(1);
+        }
+    }
+
+    // Build the Axum app with all routes
+    debug!("Building application routes...");
+    let app = app::create_app(&config).await;
     info!("App and routes initialized");
 
     // Start the server
     let addr = SocketAddr::from(([0, 0, 0, 0], 4000));
     debug!(?addr, "Binding TCP listener");
-    let listener = TcpListener::bind(addr).await.unwrap();
+    let listener = match TcpListener::bind(addr).await {
+        Ok(listener) => listener,
+        Err(e) => {
+            error!("Failed to bind to address {}: {}", addr, e);
+            return;
+        }
+    };
     info!("Auth Service running on {}", addr);
-    serve(listener, app).await.unwrap();
+    if let Err(e) = serve(listener, app).await {
+        error!("Server error: {}", e);
+    }
 }

@@ -1,0 +1,477 @@
+### Document Service Tests - Nginx Reverse Proxy Routes
+### Base URL: http://localhost:5000/api (routes through Nginx to API Gateway)
+
+@baseUrl = http://localhost:5000/api
+
+### Variables - Update these with actual values from auth and application tests
+@admin_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiODE2MmExMS0xYTQ4LTQzMjEtYjRiMC1iMWZmN2Q0ODlkZmYiLCJlbWFpbCI6ImFkbWluQGluY3ViYXRpLmNvbSIsInJvbGUiOiJhZG1pbiIsImV4cCI6MTc1MTg5MjYyOX0.jA7LcfCu_8YPfa2smzHezNCkk2G8DO0hoRbjm6UrE38
+
+@student_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkMzFiZDQwOC05ZjRmLTQzYzItYmUyNi00NTUxNTg1NjA3YWQiLCJlbWFpbCI6InN0dWRlbnRAZXhhbXBsZS5jb20iLCJyb2xlIjoiZXR1ZGlhbnQiLCJleHAiOjE3NTE4OTI2NDZ9.fwvEOt9_QScKj50M61B-2bFjC4fPxsUalWAaMfx1wKU
+
+@encadrant_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjNTg4ZjcwYS1lMzg2LTQzMDYtYWRmZC1jMDZiN2FlNTg5MjkiLCJlbWFpbCI6ImVuY2FkcmFudEBleGFtcGxlLmNvbSIsInJvbGUiOiJlbmNhZHJhbnQiLCJleHAiOjE3NTE4OTI2NjB9.QmHrFzjIgnndpeNkGlR8xvExx0cFQ1LGkdAZPO_jKJA
+
+@otherStudentToken = YOUR_OTHER_STUDENT_ACCESS_TOKEN_HERE
+
+@applicationId = 780c1ce4-782a-48e4-b366-9343d2463d9f
+
+@otherApplicationId = 39e42237-afb1-4bf2-928e-b0bf2f8123c6
+
+@documentId = bd1873aa-e3b8-47a2-830d-dae2e3a19ca5
+
+@otherDocumentId = ANOTHER_USERS_DOCUMENT_ID_HERE
+
+@filename = http://localhost:5000/storage/documents/applications/780c1ce4-782a-48e4-b366-9343d2463d9f/documents/bd1873aa-e3b8-47a2-830d-dae2e3a19ca5.pdf
+
+### Prerequisites:
+# 1. Run auth-nginx.http tests first to get tokens
+# 2. Run applications-nginx.http tests to create applications  
+# 3. Update the variables above with actual values from previous tests
+# 4. Have actual files ready for upload testing
+
+### Health Check
+GET {{baseUrl}}/documents/health
+
+### 1. Upload CV Document - Valid
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123456789
+Authorization: Bearer {{student_token}}
+
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="application_id"
+
+{{applicationId}}
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="title"
+
+CV Document
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="file"; filename="cv.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 44
+>>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+(Test CV Document) Tj
+ET
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000204 00000 n 
+trailer
+<<
+/Size 5
+/Root 1 0 R
+>>
+startxref
+297
+%%EOF
+------WebKitFormBoundary123456789--
+
+### 2. Upload Motivation Letter - Valid
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123456789
+Authorization: Bearer {{student_token}}
+
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="application_id"
+
+{{applicationId}}
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="title"
+
+Motivation Letter
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="file"; filename="motivation_letter.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 55
+>>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+(Test Motivation Letter Document) Tj
+ET
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000204 00000 n 
+trailer
+<<
+/Size 5
+/Root 1 0 R
+>>
+startxref
+308
+%%EOF
+------WebKitFormBoundary123456789--
+
+### 3. Upload Academic Transcript - Valid
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123456789
+Authorization: Bearer {{student_token}}
+
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="application_id"
+
+{{applicationId}}
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="title"
+
+Academic Transcript
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="file"; filename="transcript.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 58
+>>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+(Test Academic Transcript Document) Tj
+ET
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000204 00000 n 
+trailer
+<<
+/Size 5
+/Root 1 0 R
+>>
+startxref
+311
+%%EOF
+------WebKitFormBoundary123456789--
+
+### 4. Upload Document - Invalid Application ID
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123456789
+Authorization: Bearer {{student_token}}
+
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="application_id"
+
+invalid-uuid
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="title"
+
+CV Document
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="file"; filename="test.pdf"
+Content-Type: application/pdf
+
+Test content
+------WebKitFormBoundary123456789--
+
+### 5. Upload Document - Missing Application ID
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123456789
+Authorization: Bearer {{student_token}}
+
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="title"
+
+CV Document
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="file"; filename="test.pdf"
+Content-Type: application/pdf
+
+Test content
+------WebKitFormBoundary123456789--
+
+### 6. Upload Document - Missing Title
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123456789
+Authorization: Bearer {{student_token}}
+
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="application_id"
+
+{{applicationId}}
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="file"; filename="test.pdf"
+Content-Type: application/pdf
+
+Test content
+------WebKitFormBoundary123456789--
+
+### 7. Upload Document - No File
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123456789
+Authorization: Bearer {{student_token}}
+
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="application_id"
+
+{{applicationId}}
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="title"
+
+CV Document
+------WebKitFormBoundary123456789--
+
+### 8. Upload Document - No Authorization
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123456789
+
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="application_id"
+
+{{applicationId}}
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="title"
+
+CV Document
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="file"; filename="test.pdf"
+Content-Type: application/pdf
+
+Test content
+------WebKitFormBoundary123456789--
+
+### 9. Upload Large Document (Test File Size Limits)
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123456789
+Authorization: Bearer {{student_token}}
+
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="application_id"
+
+{{applicationId}}
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="title"
+
+Large Document
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="file"; filename="large_file.pdf"
+Content-Type: application/pdf
+
+[This would be a large file in actual testing - currently just placeholder text]
+Large file content would go here - test with actual large files to verify size limits
+------WebKitFormBoundary123456789--
+
+### 10. Upload Document - Wrong User's Application (Should Fail)
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123456789
+Authorization: Bearer {{otherStudentToken}}
+
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="application_id"
+
+{{otherApplicationId}}
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="title"
+
+CV Document
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="file"; filename="test.pdf"
+Content-Type: application/pdf
+
+Test content
+------WebKitFormBoundary123456789--
+
+### 11. Get Documents for Application
+GET {{baseUrl}}/documents?application_id={{applicationId}}
+Authorization: Bearer {{admin_token}}
+### 12. Get Documents - No Application ID
+GET {{baseUrl}}/documents
+Authorization: Bearer {{student_token}}
+
+### 13. Get Documents - Invalid Application ID
+GET {{baseUrl}}/documents?application_id=invalid-uuid
+Authorization: Bearer {{student_token}}
+
+### 14. Get Documents - Other User's Application (Should Fail)
+GET {{baseUrl}}/documents?application_id={{otherApplicationId}}
+Authorization: Bearer {{student_token}}
+
+### 15. Get Documents - No Authorization
+GET {{baseUrl}}/documents?application_id={{applicationId}}
+
+### 16. Get Specific Document by ID
+GET {{baseUrl}}/documents/{{documentId}}
+Authorization: Bearer {{student_token}}
+
+### 17. Get Document - Invalid Document ID
+GET {{baseUrl}}/documents/invalid-uuid
+Authorization: Bearer {{student_token}}
+
+### 18. Get Document - Non-existent Document ID
+GET {{baseUrl}}/documents/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{student_token}}
+
+### 19. Get Document - Other User's Document (Should Fail)
+GET {{baseUrl}}/documents/{{otherDocumentId}}
+Authorization: Bearer {{student_token}}
+
+### 20. Get Document Download URL
+GET {{baseUrl}}/documents/{{documentId}}/download
+Authorization: Bearer {{student_token}}
+
+### 21. Get Document Download URL - Invalid ID
+GET {{baseUrl}}/documents/invalid-uuid/download
+Authorization: Bearer {{student_token}}
+
+### 22. Get Document Download URL - No Authorization
+GET {{baseUrl}}/documents/{{documentId}}/download
+
+### 23. Direct File Access through Nginx Storage Proxy
+### Use the download URL returned from test #20
+GET http://localhost:5000/storage/documents/{{filename}}
+
+### 24. Direct File Access - Invalid Filename
+GET http://localhost:5000/storage/documents/nonexistent-file.pdf
+
+
+
+### 28. Upload Duplicate Document Type for Same Application
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123456789
+Authorization: Bearer {{student_token}}
+
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="application_id"
+
+{{applicationId}}
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="title"
+
+Updated CV
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="file"; filename="cv_updated.pdf"
+Content-Type: application/pdf
+
+Updated CV content
+------WebKitFormBoundary123456789--
+
+### 29. Upload Document with Malicious Filename
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123456789
+Authorization: Bearer {{student_token}}
+
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="application_id"
+
+{{applicationId}}
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="title"
+
+Malicious File
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="file"; filename="../../../etc/passwd"
+Content-Type: application/pdf
+
+Malicious content
+------WebKitFormBoundary123456789--
+
+### 30. Upload Document with Script in Filename
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary123456789
+Authorization: Bearer {{student_token}}
+
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="application_id"
+
+{{applicationId}}
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="title"
+
+XSS Test File
+------WebKitFormBoundary123456789
+Content-Disposition: form-data; name="file"; filename="<script>alert('xss')</script>.pdf"
+Content-Type: application/pdf
+
+Test content
+------WebKitFormBoundary123456789--

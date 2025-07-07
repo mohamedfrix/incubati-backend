@@ -10,9 +10,12 @@ use crate::middleware::auth_middleware::AuthenticatedUser;
 use crate::models::user::User;
 use crate::middleware::auth_middleware::AuthErrorResponse;
 use tracing::{info, debug, warn, error};
+use serde_json::{json, Value};
+use chrono;
 
 pub fn auth_routes(auth_service: Arc<AuthService>) -> Router {
     Router::new()
+        .route("/health", get(health_check))
         .route("/register", post(register))
         .route("/login", post(login))
         .route("/refresh-token", post(refresh_token))
@@ -136,4 +139,13 @@ async fn refresh_token(
             Err(resp)
         }
     }
+}
+
+/// Health check endpoint
+pub async fn health_check() -> Json<Value> {
+    Json(json!({
+        "status": "healthy",
+        "service": "api-gateway",
+        "timestamp": chrono::Utc::now().to_rfc3339()
+    }))
 } 

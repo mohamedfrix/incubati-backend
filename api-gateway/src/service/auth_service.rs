@@ -83,8 +83,10 @@ impl AuthService {
             }
         };
         debug!(user_id = %user.id, "User created in DB");
-        let access_token = jwt::create_access_token(user.id, &user.email, &format!("{:?}", user.role).to_lowercase(), &self.jwt_secret, self.access_token_expiry_minutes);
-        let refresh_token = jwt::create_refresh_token(user.id, &user.email, &format!("{:?}", user.role).to_lowercase(), &self.jwt_secret, self.refresh_token_expiry_minutes);
+        let access_token = jwt::create_access_token(user.id, &user.email, &format!("{:?}", user.role).to_lowercase(), &self.jwt_secret, self.access_token_expiry_minutes)
+            .map_err(|e| format!("Failed to create access token: {}", e))?;
+        let refresh_token = jwt::create_refresh_token(user.id, &user.email, &format!("{:?}", user.role).to_lowercase(), &self.jwt_secret, self.refresh_token_expiry_minutes)
+            .map_err(|e| format!("Failed to create refresh token: {}", e))?;
         info!(user_id = %user.id, "User registered successfully");
         Ok(AuthResponseDto {
             access_token,
@@ -129,8 +131,10 @@ impl AuthService {
                 return Err("Verify error".into());
             }
         }
-        let access_token = jwt::create_access_token(user.id, &user.email, &format!("{:?}", user.role).to_lowercase(), &self.jwt_secret, self.access_token_expiry_minutes);
-        let refresh_token = jwt::create_refresh_token(user.id, &user.email, &format!("{:?}", user.role).to_lowercase(), &self.jwt_secret, self.refresh_token_expiry_minutes);
+        let access_token = jwt::create_access_token(user.id, &user.email, &format!("{:?}", user.role).to_lowercase(), &self.jwt_secret, self.access_token_expiry_minutes)
+            .map_err(|e| format!("Failed to create access token: {}", e))?;
+        let refresh_token = jwt::create_refresh_token(user.id, &user.email, &format!("{:?}", user.role).to_lowercase(), &self.jwt_secret, self.refresh_token_expiry_minutes)
+            .map_err(|e| format!("Failed to create refresh token: {}", e))?;
         info!(user_id = %user.id, "Login successful");
         Ok(AuthResponseDto {
             access_token,
@@ -257,8 +261,10 @@ impl AuthService {
                 return Err("DB error during refresh_token".to_string());
             }
         };
-        let access_token = jwt::create_access_token(user.id, &user.email, &format!("{:?}", user.role).to_lowercase(), &self.jwt_secret, self.access_token_expiry_minutes);
-        let refresh_token = jwt::create_refresh_token(user.id, &user.email, &format!("{:?}", user.role).to_lowercase(), &self.jwt_secret, self.refresh_token_expiry_minutes);
+        let access_token = jwt::create_access_token(user.id, &user.email, &format!("{:?}", user.role).to_lowercase(), &self.jwt_secret, self.access_token_expiry_minutes)
+            .map_err(|e| format!("Failed to create access token: {}", e))?;
+        let refresh_token = jwt::create_refresh_token(user.id, &user.email, &format!("{:?}", user.role).to_lowercase(), &self.jwt_secret, self.refresh_token_expiry_minutes)
+            .map_err(|e| format!("Failed to create refresh token: {}", e))?;
         info!(user_id = %user.id, "Refresh token successful");
         Ok(AuthResponseDto {
             access_token,

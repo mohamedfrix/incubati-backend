@@ -8,6 +8,7 @@ pub mod models;
 pub mod repository;
 pub mod service;
 pub mod utils;
+pub mod startup;
 
 use std::sync::Arc;
 use axum::Router;
@@ -23,6 +24,7 @@ use repository::{PgApplicationRepository, PgDocumentRepository};
 use service::{ApplicationService, QueryService, DocumentService};
 use utils::MinioClient;
 use grpc_server::{GrpcServer, GrpcServerConfig};
+use startup::initialize_database;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -46,10 +48,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let pool = PgPool::connect(&config.database_url).await?;
     info!("Database connection established");
 
-    // Run migrations
-    info!("Running database migrations...");
-    sqlx::migrate!("./migrations").run(&pool).await?;
-    info!("Database migrations completed");
+    // Initialize database (run migrations)
+    match initialize_database(&pool).await {
+        Ok(()) => info!("Database initialization completed successfully"),
+        Err(e) => {
+            error!("Failed to initialize database: {}", e);
+            return Err(e);
+        }
+    }
 
     // Initialize Minio client
     info!("Initializing Minio client...");

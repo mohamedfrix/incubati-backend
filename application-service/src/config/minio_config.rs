@@ -11,6 +11,7 @@ pub struct MinioConfig {
     pub documents_bucket: String,
     pub temp_bucket: String,
     pub download_url_expiry_seconds: u64,
+    pub external_url_base: String,
 }
 
 impl MinioConfig {
@@ -37,6 +38,8 @@ impl MinioConfig {
                 .unwrap_or_else(|_| "3600".to_string()) // 1 hour default
                 .parse()
                 .expect("MINIO_DOWNLOAD_URL_EXPIRY_SECONDS must be a valid number"),
+            external_url_base: env::var("EXTERNAL_URL_BASE")
+                .unwrap_or_else(|_| "http://localhost/storage".to_string()),
         }
     }
 }

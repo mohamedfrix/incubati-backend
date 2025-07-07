@@ -1,0 +1,469 @@
+### Security Tests - Nginx Reverse Proxy Routes
+### Base URL: http://localhost:5000/api (routes through Nginx to API Gateway)
+
+@baseUrl = http://localhost:5000/api
+
+### These tests focus on security aspects and attack scenarios
+### All tests should fail gracefully without exposing sensitive information
+
+### AUTHENTICATION SECURITY TESTS
+
+### 1. SQL Injection Attempts in Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com'; DROP TABLE users; --",
+  "password": "admin123456"
+}
+
+### 2. NoSQL Injection Attempt
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": {"$ne": null},
+  "password": {"$ne": null}
+}
+
+### 3. XSS in Registration Fields
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+{
+  "email": "xss@test.com",
+  "password": "password123",
+  "nom": "<script>alert('XSS')</script>",
+  "prenom": "<img src=x onerror=alert('XSS')>",
+  "role": "etudiant"
+}
+
+### 4. Command Injection in Email Field
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@test.com; cat /etc/passwd",
+  "password": "password123"
+}
+
+### 5. LDAP Injection
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com)(|(password=*))",
+  "password": "anything"
+}
+
+### 6. Path Traversal in Email
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "../../../etc/passwd",
+  "password": "password123"
+}
+
+### 7. Buffer Overflow Attempt (Very Long Password)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com",
+  "password": "A" * 10000
+}
+
+### 8. Unicode/UTF-8 Attacks
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com\u0000.evil.com",
+  "password": "admin123456"
+}
+
+### TOKEN SECURITY TESTS
+
+### 9. JWT Token Manipulation - Invalid Signature
+POST {{baseUrl}}/auth/verify-token
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+
+### 10. JWT Token with Modified Claims
+POST {{baseUrl}}/auth/verify-token
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGluY3ViYXRpLmNvbSIsInJvbGUiOiJhZG1pbiIsImV4cCI6OTk5OTk5OTk5OX0.modified_signature
+
+### 11. Empty JWT Token
+POST {{baseUrl}}/auth/verify-token
+Authorization: Bearer
+
+### 12. Malformed JWT Token
+POST {{baseUrl}}/auth/verify-token
+Authorization: Bearer not.a.jwt.token
+
+### 13. JWT with "none" Algorithm
+POST {{baseUrl}}/auth/verify-token
+Authorization: Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJlbWFpbCI6ImFkbWluQGluY3ViYXRpLmNvbSIsInJvbGUiOiJhZG1pbiJ9.
+
+### 14. Expired Token (Use an actually expired token)
+POST {{baseUrl}}/auth/verify-token
+Authorization: Bearer YOUR_EXPIRED_TOKEN_HERE
+
+### HTTP HEADER ATTACKS
+
+### 15. Host Header Injection
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+Host: evil.com
+
+{
+  "email": "admin@incubati.com",
+  "password": "admin123456"
+}
+
+### 16. X-Forwarded-For Spoofing
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+X-Forwarded-For: 127.0.0.1
+
+{
+  "email": "admin@incubati.com",
+  "password": "admin123456"
+}
+
+### 17. User-Agent Header Injection
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+User-Agent: <script>alert('XSS')</script>
+
+{
+  "email": "admin@incubati.com",
+  "password": "admin123456"
+}
+
+### 18. HTTP Method Override
+GET {{baseUrl}}/auth/login
+X-HTTP-Method-Override: POST
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com",
+  "password": "admin123456"
+}
+
+### FILE UPLOAD SECURITY TESTS
+
+### 19. Upload Executable File
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----SecurityTest
+Authorization: Bearer YOUR_STUDENT_TOKEN
+
+------SecurityTest
+Content-Disposition: form-data; name="application_id"
+
+YOUR_APPLICATION_ID
+------SecurityTest
+Content-Disposition: form-data; name="title"
+
+Malicious Executable
+------SecurityTest
+Content-Disposition: form-data; name="file"; filename="malicious.exe"
+Content-Type: application/octet-stream
+
+MZ\x90\x00\x03\x00\x00\x00
+------SecurityTest--
+
+### 20. Upload PHP Shell
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----SecurityTest
+Authorization: Bearer YOUR_STUDENT_TOKEN
+
+------SecurityTest
+Content-Disposition: form-data; name="application_id"
+
+YOUR_APPLICATION_ID
+------SecurityTest
+Content-Disposition: form-data; name="title"
+
+PHP Shell
+------SecurityTest
+Content-Disposition: form-data; name="file"; filename="shell.php"
+Content-Type: application/pdf
+
+<?php system($_GET['cmd']); ?>
+------SecurityTest--
+
+### 21. Upload with Path Traversal Filename
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----SecurityTest
+Authorization: Bearer YOUR_STUDENT_TOKEN
+
+------SecurityTest
+Content-Disposition: form-data; name="application_id"
+
+YOUR_APPLICATION_ID
+------SecurityTest
+Content-Disposition: form-data; name="title"
+
+Path Traversal Test
+------SecurityTest
+Content-Disposition: form-data; name="file"; filename="../../../etc/passwd"
+Content-Type: application/pdf
+
+Test content
+------SecurityTest--
+
+### 22. Upload with Null Byte in Filename
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----SecurityTest
+Authorization: Bearer YOUR_STUDENT_TOKEN
+
+------SecurityTest
+Content-Disposition: form-data; name="application_id"
+
+YOUR_APPLICATION_ID
+------SecurityTest
+Content-Disposition: form-data; name="title"
+
+Null Byte Test
+------SecurityTest
+Content-Disposition: form-data; name="file"; filename="document.pdf%00.php"
+Content-Type: application/pdf
+
+Test content
+------SecurityTest--
+
+### 23. Upload Polyglot File (PDF + JS)
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----SecurityTest
+Authorization: Bearer YOUR_STUDENT_TOKEN
+
+------SecurityTest
+Content-Disposition: form-data; name="application_id"
+
+YOUR_APPLICATION_ID
+------SecurityTest
+Content-Disposition: form-data; name="title"
+
+Polyglot File
+------SecurityTest
+Content-Disposition: form-data; name="file"; filename="polyglot.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4<script>alert('XSS')</script>
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>endobj
+xref
+0 4
+trailer<</Size 4/Root 1 0 R>>
+startxref
+200
+%%EOF
+------SecurityTest--
+
+### AUTHORIZATION BYPASS ATTEMPTS
+
+### 24. Parameter Pollution
+GET {{baseUrl}}/applications/query?role=admin&role=student
+Authorization: Bearer YOUR_STUDENT_TOKEN
+
+### 25. Case Sensitivity Bypass
+POST {{baseUrl}}/AUTH/LOGIN
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com",
+  "password": "admin123456"
+}
+
+### 26. HTTP Verb Tampering
+DELETE {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com",
+  "password": "admin123456"
+}
+
+### 27. Authorization Header Manipulation
+GET {{baseUrl}}/applications
+Authorization: Bearer YOUR_TOKEN
+Authorization: Bearer ADMIN_TOKEN
+
+### RATE LIMITING AND BRUTE FORCE TESTS
+
+### 28. Rapid Login Attempts (Brute Force Simulation)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com",
+  "password": "wrong1"
+}
+
+### 29. Multiple Rapid Login Attempts
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com",
+  "password": "wrong2"
+}
+
+### 30. More Rapid Login Attempts
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com",
+  "password": "wrong3"
+}
+
+### 31. Continue Brute Force
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com",
+  "password": "wrong4"
+}
+
+### 32. More Brute Force
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com",
+  "password": "wrong5"
+}
+
+### INFORMATION DISCLOSURE TESTS
+
+### 33. Request Non-existent Endpoint for Error Info
+GET {{baseUrl}}/admin/secret-endpoint
+
+### 34. SQL Error Induction
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com'",
+  "password": "admin123456"
+}
+
+### 35. Request Server Info Headers
+OPTIONS {{baseUrl}}/auth/login
+
+### 36. Try to Access Internal Endpoints
+GET {{baseUrl}}/internal/health
+
+### 37. Server-Side Request Forgery (SSRF) Attempt
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----SecurityTest
+Authorization: Bearer YOUR_STUDENT_TOKEN
+
+------SecurityTest
+Content-Disposition: form-data; name="application_id"
+
+YOUR_APPLICATION_ID
+------SecurityTest
+Content-Disposition: form-data; name="title"
+
+SSRF Test
+------SecurityTest
+Content-Disposition: form-data; name="file"; filename="test.pdf"
+Content-Type: application/pdf
+
+HTTP request to internal service
+------SecurityTest--
+
+### CONTENT-TYPE ATTACKS
+
+### 38. Content-Type Confusion
+POST {{baseUrl}}/auth/login
+Content-Type: text/plain
+
+{
+  "email": "admin@incubati.com",
+  "password": "admin123456"
+}
+
+### 39. JSON in XML Content-Type
+POST {{baseUrl}}/auth/login
+Content-Type: application/xml
+
+{
+  "email": "admin@incubati.com",
+  "password": "admin123456"
+}
+
+### 40. Binary Content as JSON
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+\x00\x01\x02\x03\x04\x05
+
+### CORS AND ORIGIN ATTACKS
+
+### 41. Cross-Origin Request
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+Origin: https://evil.com
+
+{
+  "email": "admin@incubati.com",
+  "password": "admin123456"
+}
+
+### 42. Null Origin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+Origin: null
+
+{
+  "email": "admin@incubati.com",
+  "password": "admin123456"
+}
+
+### LARGE PAYLOAD ATTACKS
+
+### 43. Large JSON Payload (DoS Attempt)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com",
+  "password": "A" * 1000000
+}
+
+### 44. Deeply Nested JSON (JSON Bomb)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com",
+  "password": "admin123456",
+  "nested": {"a": {"b": {"c": {"d": {"e": {"f": {"g": {"h": {"i": {"j": "deep"}}}}}}}}}}
+}
+
+### DIRECT ACCESS ATTEMPTS
+
+### 45. Try to Access MinIO Directly (Should be blocked)
+GET http://localhost:5000/minio
+
+### 46. Try to Access Application Service Directly (Should be blocked)  
+GET http://localhost:5000/app-service
+
+### 47. Try to Access Database Directly (Should be blocked)
+GET http://localhost:5000/db
+
+### 48. Nginx Config Exposure Attempt
+GET http://localhost:5000/nginx.conf
+
+### 49. Docker Secrets Exposure Attempt
+GET http://localhost:5000/.env
+
+### 50. Git Repository Exposure Attempt
+GET http://localhost:5000/.git/config

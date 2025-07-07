@@ -1,0 +1,104 @@
+### API Gateway Auth Tests - Using Nginx Reverse Proxy
+### These tests use the nginx reverse proxy routes (port 80) instead of direct service ports
+
+@baseUrl = http://localhost/api
+
+### Test health endpoint
+GET {{baseUrl}}/auth/health
+
+### 1. Admin Login Test
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com",
+  "password": "admin123456"
+}
+
+### 2. Login with invalid credentials
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "invalid@test.com",
+  "password": "wrongpassword"
+}
+
+### 3. Login with missing fields
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@test.com"
+}
+
+### 4. Login with invalid email format
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "invalid-email",
+  "password": "password123"
+}
+
+### 5. Valid User Registration
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "student@test.com",
+  "password": "password123",
+  "nom": "Test",
+  "prenom": "Student",
+  "role": "etudiant"
+}
+
+### 6. Register with existing email
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com",
+  "password": "password123",
+  "nom": "Another",
+  "prenom": "Admin",
+  "role": "admin"
+}
+
+### 7. Register with invalid role
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "invalid@test.com",
+  "password": "password123",
+  "nom": "Invalid",
+  "prenom": "Role",
+  "role": "invalid_role"
+}
+
+### 8. Verify valid token (use token from login response)
+POST {{baseUrl}}/auth/verify-token
+Content-Type: application/json
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+{}
+
+### 9. Verify invalid token
+POST {{baseUrl}}/auth/verify-token
+Content-Type: application/json
+Authorization: Bearer invalid_token
+
+{}
+
+### 10. Refresh token (use refresh token from login response)
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refresh_token": "YOUR_REFRESH_TOKEN_HERE"
+}
+
+### 11. List users (admin only - requires valid admin token)
+GET {{baseUrl}}/auth/users
+Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN_HERE

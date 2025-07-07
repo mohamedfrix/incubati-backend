@@ -27,10 +27,10 @@ pub struct AppState {
 pub fn create_router(state: AppState) -> Router {
     Router::new()
         .route("/applications", get(list_applications).post(create_application))
-        .route("/applications/:id", get(get_application).put(update_application).delete(delete_application))
-        .route("/applications/:id/status", patch(change_application_status))
-        .route("/applications/:id/documents", get(get_application_documents).post(upload_document))
-        .route("/documents/:id", get(get_document).delete(delete_document))
-        .route("/documents/:id/download", get(download_document))
+        .route("/applications/{id}", get(get_application).put(update_application).delete(delete_application))
+        .route("/applications/{id}/status", patch(change_application_status))
+        .route("/applications/{id}/documents", get(get_application_documents).post(upload_document))
+        .route("/documents/{id}", get(get_document).delete(delete_document))
+        .route("/documents/{id}/download", get(download_document))
         .with_state(state)
 }

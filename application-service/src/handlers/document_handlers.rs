@@ -1,6 +1,6 @@
 use axum::{
     extract::{Path, State, Multipart},
-    http::{StatusCode, HeaderMap, header},
+    http::{StatusCode, HeaderMap, HeaderValue, header},
     response::{IntoResponse, Response},
     Json,
 };
@@ -141,16 +141,17 @@ pub async fn download_document_content(
         .await?;
     
     let mut headers = HeaderMap::new();
-    headers.insert(
-        header::CONTENT_TYPE,
-        content_type.parse().unwrap_or_else(|_| "application/octet-stream".parse().unwrap()),
-    );
-    headers.insert(
-        header::CONTENT_DISPOSITION,
-        format!("attachment; filename=\"{}\"", original_name)
-            .parse()
-            .unwrap_or_else(|_| "attachment".parse().unwrap()),
-    );
+    
+    // Safe content type parsing with fallback
+    let content_type_value = content_type.parse()
+        .unwrap_or_else(|_| HeaderValue::from_static("application/octet-stream"));
+    headers.insert(header::CONTENT_TYPE, content_type_value);
+    
+    // Safe content disposition parsing with fallback
+    let disposition_value = format!("attachment; filename=\"{}\"", original_name)
+        .parse()
+        .unwrap_or_else(|_| HeaderValue::from_static("attachment"));
+    headers.insert(header::CONTENT_DISPOSITION, disposition_value);
     
     Ok((headers, content).into_response())
 }

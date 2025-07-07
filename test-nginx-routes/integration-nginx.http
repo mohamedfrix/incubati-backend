@@ -1,0 +1,506 @@
+### Integration Tests - Complete Workflows through Nginx
+### Base URL: http://localhost:5000/api (routes through Nginx to API Gateway)
+
+@baseUrl = http://localhost:5000/api
+
+### This file demonstrates complete end-to-end workflows
+### Run these tests in sequence to verify the entire system works
+
+### WORKFLOW 1: Complete Student Application Process
+
+### Step 1.1: Admin Login to Get Admin Token
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@incubati.com",
+  "password": "admin123456"
+}
+
+# Save admin token from response: YOUR_ADMIN_TOKEN
+
+### Step 1.2: Admin Creates Student User
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+{
+  "email": "integration.student@example.com",
+  "password": "student123456",
+  "nom": "Integration",
+  "prenom": "Student",
+  "role": "etudiant"
+}
+
+### Step 1.3: Student Login to Get Student Token
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "integration.student@example.com",
+  "password": "student123456"
+}
+
+# Save student token from response: YOUR_STUDENT_TOKEN
+
+### Step 1.4: Student Creates Internship Application
+POST {{baseUrl}}/applications
+Content-Type: application/json
+Authorization: Bearer YOUR_STUDENT_TOKEN
+
+{
+  "application_type": "internship",
+  "type_specific_data": {
+    "company": "Integration Test Corp",
+    "position": "Software Developer Intern",
+    "duration_months": 6,
+    "start_date": "2025-08-01",
+    "supervisor_name": "Test Supervisor",
+    "supervisor_email": "supervisor@integrationtest.com",
+    "description": "Full integration test internship application",
+    "requirements": "Testing skills and patience"
+  }
+}
+
+# Save application ID from response: YOUR_APPLICATION_ID
+
+### Step 1.5: Student Uploads CV Document
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----IntegrationTest123
+Authorization: Bearer YOUR_STUDENT_TOKEN
+
+------IntegrationTest123
+Content-Disposition: form-data; name="application_id"
+
+YOUR_APPLICATION_ID
+------IntegrationTest123
+Content-Disposition: form-data; name="title"
+
+Integration CV
+------IntegrationTest123
+Content-Disposition: form-data; name="file"; filename="integration_cv.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 44
+>>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+(Integration Test CV) Tj
+ET
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000204 00000 n 
+trailer
+<<
+/Size 5
+/Root 1 0 R
+>>
+startxref
+297
+%%EOF
+------IntegrationTest123--
+
+### Step 1.6: Student Uploads Motivation Letter
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----IntegrationTest123
+Authorization: Bearer YOUR_STUDENT_TOKEN
+
+------IntegrationTest123
+Content-Disposition: form-data; name="application_id"
+
+YOUR_APPLICATION_ID
+------IntegrationTest123
+Content-Disposition: form-data; name="title"
+
+Integration Motivation Letter
+------IntegrationTest123
+Content-Disposition: form-data; name="file"; filename="integration_motivation.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 60
+>>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+(Integration Test Motivation Letter) Tj
+ET
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000204 00000 n 
+trailer
+<<
+/Size 5
+/Root 1 0 R
+>>
+startxref
+313
+%%EOF
+------IntegrationTest123--
+
+### Step 1.7: Student Views Their Application
+GET {{baseUrl}}/applications/YOUR_APPLICATION_ID
+Authorization: Bearer YOUR_STUDENT_TOKEN
+
+### Step 1.8: Student Views Their Documents
+GET {{baseUrl}}/documents?application_id=YOUR_APPLICATION_ID
+Authorization: Bearer YOUR_STUDENT_TOKEN
+
+### Step 1.9: Admin Reviews Application
+GET {{baseUrl}}/applications/query?status=en_attente
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+### Step 1.10: Admin Approves Application
+PATCH {{baseUrl}}/applications/YOUR_APPLICATION_ID/change_status
+Content-Type: application/json
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+{
+  "status": "approuvee",
+  "feedback": "Application approved after thorough review. Congratulations!"
+}
+
+### Step 1.11: Student Checks Updated Application Status
+GET {{baseUrl}}/applications/YOUR_APPLICATION_ID
+Authorization: Bearer YOUR_STUDENT_TOKEN
+
+### WORKFLOW 2: Encadrant Managing Students
+
+### Step 2.1: Admin Creates Encadrant User
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+{
+  "email": "integration.encadrant@example.com",
+  "password": "encadrant123456",
+  "nom": "Integration",
+  "prenom": "Encadrant",
+  "role": "encadrant"
+}
+
+### Step 2.2: Encadrant Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "integration.encadrant@example.com",
+  "password": "encadrant123456"
+}
+
+# Save encadrant token: YOUR_ENCADRANT_TOKEN
+
+### Step 2.3: Encadrant Creates Student
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+Authorization: Bearer YOUR_ENCADRANT_TOKEN
+
+{
+  "email": "encadrant.student@example.com",
+  "password": "student123456",
+  "nom": "Encadrant",
+  "prenom": "CreatedStudent",
+  "role": "etudiant"
+}
+
+### Step 2.4: Encadrant Views Their Created Users
+GET {{baseUrl}}/auth/users
+Authorization: Bearer YOUR_ENCADRANT_TOKEN
+
+### Step 2.5: New Student Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "encadrant.student@example.com",
+  "password": "student123456"
+}
+
+# Save token: YOUR_NEW_STUDENT_TOKEN
+
+### Step 2.6: New Student Creates PFE Application
+POST {{baseUrl}}/applications
+Content-Type: application/json
+Authorization: Bearer YOUR_NEW_STUDENT_TOKEN
+
+{
+  "application_type": "pfe",
+  "type_specific_data": {
+    "title": "Integration Test PFE Project",
+    "supervisor_name": "Integration Encadrant",
+    "company": "Test University",
+    "academic_year": "2024-2025",
+    "specialization": "Computer Science - Testing",
+    "objectives": "Complete integration testing workflow validation",
+    "methodology": "Automated testing and manual verification",
+    "expected_outcomes": "Fully validated integration workflow"
+  }
+}
+
+# Save PFE application ID: YOUR_PFE_APPLICATION_ID
+
+### Step 2.7: Encadrant Reviews Student's Application
+GET {{baseUrl}}/applications/query?page=1&limit=10
+Authorization: Bearer YOUR_ENCADRANT_TOKEN
+
+### Step 2.8: Encadrant Requests Revision
+PATCH {{baseUrl}}/applications/YOUR_PFE_APPLICATION_ID/change_status
+Content-Type: application/json
+Authorization: Bearer YOUR_ENCADRANT_TOKEN
+
+{
+  "status": "en_revision",
+  "feedback": "Please provide more detailed methodology and timeline for the project."
+}
+
+### WORKFLOW 3: Incubation Application Process
+
+### Step 3.1: Admin Creates Incube User
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+{
+  "email": "integration.incube@example.com",
+  "password": "incube123456",
+  "nom": "Integration",
+  "prenom": "Incube",
+  "role": "incube"
+}
+
+### Step 3.2: Incube Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "integration.incube@example.com",
+  "password": "incube123456"
+}
+
+# Save incube token: YOUR_INCUBE_TOKEN
+
+### Step 3.3: Incube Creates Incubation Application
+POST {{baseUrl}}/applications
+Content-Type: application/json
+Authorization: Bearer YOUR_INCUBE_TOKEN
+
+{
+  "application_type": "incubation",
+  "type_specific_data": {
+    "project_name": "Integration Test Startup",
+    "business_model": "B2B SaaS for integration testing",
+    "target_market": "Software development companies",
+    "funding_amount": "75000.00",
+    "team_size": 4,
+    "project_stage": "Prototype Complete",
+    "description": "Revolutionary integration testing platform for microservices"
+  }
+}
+
+# Save incubation application ID: YOUR_INCUBATION_APPLICATION_ID
+
+### Step 3.4: Incube Uploads Business Plan
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=----IntegrationTest123
+Authorization: Bearer YOUR_INCUBE_TOKEN
+
+------IntegrationTest123
+Content-Disposition: form-data; name="application_id"
+
+YOUR_INCUBATION_APPLICATION_ID
+------IntegrationTest123
+Content-Disposition: form-data; name="title"
+
+Business Plan
+------IntegrationTest123
+Content-Disposition: form-data; name="file"; filename="integration_business_plan.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 55
+>>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+(Integration Test Business Plan) Tj
+ET
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000204 00000 n 
+trailer
+<<
+/Size 5
+/Root 1 0 R
+>>
+startxref
+308
+%%EOF
+------IntegrationTest123--
+
+### WORKFLOW 4: Token Management and Security
+
+### Step 4.1: Verify Access Token
+POST {{baseUrl}}/auth/verify-token
+Authorization: Bearer YOUR_STUDENT_TOKEN
+
+### Step 4.2: Use Refresh Token
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refresh_token": "YOUR_REFRESH_TOKEN_FROM_LOGIN"
+}
+
+### Step 4.3: Verify New Access Token
+POST {{baseUrl}}/auth/verify-token
+Authorization: Bearer YOUR_NEW_ACCESS_TOKEN
+
+### WORKFLOW 5: File Download and Storage
+
+### Step 5.1: Get Document Download URL
+GET {{baseUrl}}/documents/YOUR_DOCUMENT_ID/download
+Authorization: Bearer YOUR_STUDENT_TOKEN
+
+### Step 5.2: Download File Through Nginx Storage Proxy
+# Use the URL returned from Step 5.1
+GET http://localhost:5000/storage/documents/YOUR_FILENAME
+
+### WORKFLOW 6: Admin Overview
+
+### Step 6.1: Admin Views All Applications
+GET {{baseUrl}}/applications/query?page=1&limit=20
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+### Step 6.2: Admin Views All Users
+GET {{baseUrl}}/auth/users
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+### Step 6.3: Admin Views All Documents
+GET {{baseUrl}}/documents/all
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+### WORKFLOW 7: Error Handling and Edge Cases
+
+### Step 7.1: Attempt Cross-User Access
+GET {{baseUrl}}/applications/ANOTHER_USERS_APPLICATION_ID
+Authorization: Bearer YOUR_STUDENT_TOKEN
+
+### Step 7.2: Student Attempts Admin Action
+GET {{baseUrl}}/applications/query
+Authorization: Bearer YOUR_STUDENT_TOKEN
+
+### Step 7.3: Invalid Token Usage
+GET {{baseUrl}}/applications
+Authorization: Bearer invalid.token.here
+
+### Step 7.4: No Authorization Header
+GET {{baseUrl}}/applications
+
+### WORKFLOW 8: Rate Limiting Test (Manual)
+### Run these requests rapidly to test nginx rate limiting
+
+### Step 8.1: Rapid API Requests (Should trigger rate limiting)
+GET {{baseUrl}}/auth/health
+GET {{baseUrl}}/auth/health
+GET {{baseUrl}}/auth/health
+GET {{baseUrl}}/auth/health
+GET {{baseUrl}}/auth/health
+GET {{baseUrl}}/auth/health
+GET {{baseUrl}}/auth/health
+GET {{baseUrl}}/auth/health
+GET {{baseUrl}}/auth/health
+GET {{baseUrl}}/auth/health
+GET {{baseUrl}}/auth/health
+GET {{baseUrl}}/auth/health

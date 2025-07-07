@@ -12,6 +12,7 @@ pub struct Config {
     pub app_name: String,
     pub access_token_expiry_minutes: i64,
     pub refresh_token_expiry_minutes: i64,
+    pub grpc_application_service_url: String,
 }
 
 impl Config {
@@ -28,6 +29,7 @@ impl Config {
             app_name: env::var("APP_NAME").unwrap_or_else(|_| "App".to_string()),
             access_token_expiry_minutes: env::var("ACCESS_TOKEN_EXPIRY_MINUTES").unwrap_or_else(|_| "15".to_string()).parse().unwrap_or(15),
             refresh_token_expiry_minutes: env::var("REFRESH_TOKEN_EXPIRY_MINUTES").unwrap_or_else(|_| "43200".to_string()).parse().unwrap_or(43200),
+            grpc_application_service_url: env::var("GRPC_APPLICATION_SERVICE_URL").unwrap_or_else(|_| "http://application-service:50051".to_string()),
         }
     }
 } 

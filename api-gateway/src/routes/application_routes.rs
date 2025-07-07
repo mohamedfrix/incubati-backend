@@ -2,12 +2,14 @@ use axum::{Router, routing::{post, get, patch}, Extension, Json, response::IntoR
 use std::sync::Arc;
 use api_gateway::grpc_client::{GrpcApplicationClient, application_service};
 use crate::middleware::auth_middleware::AuthenticatedUser;
+use crate::service::auth_service::AuthService;
 use tracing::{info, debug, error, warn};
 use serde::{Deserialize, Serialize};
 use crate::models::user::Role;
 use axum::http::StatusCode;
 use axum::routing::delete;
 use std::collections::HashMap;
+use chrono::DateTime;
 
 /// Convert French role names to English for gRPC communication
 /// This maintains consistency with international API standards
@@ -20,25 +22,34 @@ fn role_to_grpc_string(role: &Role) -> String {
     }
 }
 
+/// Convert protobuf Timestamp to ISO 8601 formatted string
+fn timestamp_to_iso_string(timestamp: &prost_types::Timestamp) -> String {
+    DateTime::from_timestamp(timestamp.seconds, timestamp.nanos as u32)
+        .unwrap_or_default()
+        .to_rfc3339()
+}
+
 pub fn application_routes() -> Router {
     Router::new()
         .route("/", post(create_application).get(list_applications))
+        .route("/query", get(query_applications))
         .route(
-            "/:id",
+            "/{id}",
             get(get_application_by_id)
                 .put(update_application)
                 .patch(update_application)
                 .delete(delete_application),
         )
-        .route("/:id/change_status", patch(change_application_status))
+        .route("/{id}/change_status", patch(change_application_status))
         // TODO: Add status change
 }
 
 pub fn documents_router() -> Router {
     Router::new()
         .route("/", get(list_documents).post(upload_document))
-        .route("/:id", get(get_document).delete(delete_document))
-        .route("/:id/download", get(get_document_download_url))
+        .route("/all", get(list_all_documents))
+        .route("/{id}", get(get_document).delete(delete_document))
+        .route("/{id}/download", get(get_document_download_url))
 }
 
 #[derive(Deserialize, Debug)]
@@ -95,7 +106,7 @@ pub struct ChangeStatusRequestDto {
     pub feedback: Option<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct ApplicationResponseDto {
     pub id: String,
     pub application_type: i32,
@@ -117,6 +128,15 @@ pub struct PaginatedApplicationsDto {
     pub page: i32,
     pub page_size: i32,
     pub total_pages: i32,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ApplicationQueryParams {
+    pub page: Option<i32>,
+    pub limit: Option<i32>,
+    pub status: Option<String>,
+    pub application_type: Option<String>,
+    pub user_id: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -234,11 +254,11 @@ async fn create_application(
                         type_display: inner.type_display,
                         status: inner.status,
                         status_display: inner.status_display,
-                        submission_date: inner.submission_date.map(|ts| ts.seconds.to_string()),
+                        submission_date: inner.submission_date.as_ref().map(timestamp_to_iso_string),
                         feedback: inner.feedback,
                         user_id: inner.user_id,
-                        created_at: inner.created_at.map(|ts| ts.seconds.to_string()),
-                        updated_at: inner.updated_at.map(|ts| ts.seconds.to_string()),
+                        created_at: inner.created_at.as_ref().map(timestamp_to_iso_string),
+                        updated_at: inner.updated_at.as_ref().map(timestamp_to_iso_string),
                     };
                     Json(dto).into_response()
                 },
@@ -282,11 +302,11 @@ async fn list_applications(
                 type_display: app.type_display,
                 status: app.status,
                 status_display: app.status_display,
-                submission_date: app.submission_date.map(|ts| ts.seconds.to_string()),
+                submission_date: app.submission_date.as_ref().map(timestamp_to_iso_string),
                 feedback: app.feedback,
                 user_id: app.user_id,
-                created_at: app.created_at.map(|ts| ts.seconds.to_string()),
-                updated_at: app.updated_at.map(|ts| ts.seconds.to_string()),
+                created_at: app.created_at.as_ref().map(timestamp_to_iso_string),
+                updated_at: app.updated_at.as_ref().map(timestamp_to_iso_string),
             }).collect();
             let dto = PaginatedApplicationsDto {
                 results,
@@ -305,6 +325,349 @@ async fn list_applications(
             ).into_response()
         }
     }
+}
+
+async fn query_applications(
+    Query(params): Query<ApplicationQueryParams>,
+    Extension(grpc_client): Extension<Arc<GrpcApplicationClient>>,
+    Extension(auth_service): Extension<Arc<AuthService>>,
+    AuthenticatedUser(user): AuthenticatedUser,
+) -> impl IntoResponse {
+    debug!(user_id = %user.id, role = ?user.role, ?params, "Query applications request");
+    
+    // Only admin and encadrant can use query endpoint
+    if user.role != Role::Admin && user.role != Role::Encadrant {
+        return (
+            StatusCode::FORBIDDEN,
+            Json(serde_json::json!({"error": "Forbidden: only admin and encadrant can query applications"})),
+        ).into_response();
+    }
+    
+    use application_service::*;
+    let mut client = grpc_client.client.clone();
+    
+    // Convert application_type string to enum value
+    let application_type = params.application_type.and_then(|app_type| {
+        match app_type.to_lowercase().as_str() {
+            "internship" => Some(ApplicationType::Internship as i32),
+            "incubation" => Some(ApplicationType::Incubation as i32),
+            "pfe" => Some(ApplicationType::Pfe as i32),
+            _ => None,
+        }
+    });
+    
+    // Convert status string to enum value
+    let status = params.status.and_then(|status_str| {
+        match status_str.to_lowercase().as_str() {
+            "brouillon" => Some(ApplicationStatus::Brouillon as i32),
+            "en_attente" => Some(ApplicationStatus::EnAttente as i32),
+            "approuvee" => Some(ApplicationStatus::Approuvee as i32),
+            "rejetee" => Some(ApplicationStatus::Rejetee as i32),
+            "modification_demandee" => Some(ApplicationStatus::ModificationDemandee as i32),
+            _ => None,
+        }
+    });
+    
+    // For encadrants, we need to filter by users they created
+    if user.role == Role::Encadrant {
+        // If a specific user_id is requested in params, verify it was created by this encadrant
+        match &params.user_id {
+            Some(requested_user_id) => {
+                // Get users created by this encadrant
+                match auth_service.user_repo.list_users(Some(user.id)).await {
+                    Ok(created_users) => {
+                        // Check if the requested user is in the list of users created by this encadrant
+                        let created_user_ids: Vec<String> = created_users.into_iter().map(|u| u.id.to_string()).collect();
+                        if !created_user_ids.contains(requested_user_id) {
+                            // Requested user was not created by this encadrant
+                            return (
+                                StatusCode::FORBIDDEN,
+                                Json(serde_json::json!({"error": "Forbidden: cannot access applications for user not created by you"})),
+                            ).into_response();
+                        }
+                        // Continue with the requested user_id
+                    }
+                    Err(e) => {
+                        error!(user_id = %user.id, error = %e, "Failed to get users created by encadrant");
+                        return (
+                            StatusCode::INTERNAL_SERVER_ERROR,
+                            Json(serde_json::json!({"error": "Failed to verify user permissions"})),
+                        ).into_response();
+                    }
+                }
+            }
+            None => {
+                // No specific user requested, get applications from all users created by this encadrant
+                match auth_service.user_repo.list_users(Some(user.id)).await {
+                    Ok(created_users) => {
+                        if created_users.is_empty() {
+                            // Encadrant has no users, return empty result
+                            let empty_response = PaginatedApplicationsDto {
+                                results: vec![],
+                                total_count: 0,
+                                page: params.page.unwrap_or(1),
+                                page_size: params.limit.unwrap_or(10),
+                                total_pages: 0,
+                            };
+                            return Json(empty_response).into_response();
+                        }
+                        
+                        // Make requests for each user and combine results
+                        let mut all_applications = Vec::new();
+                        let mut total_count = 0;
+                        
+                        for created_user in created_users {
+                            let req = ListApplicationsRequest {
+                                user_id: Some(created_user.id.to_string()),
+                                application_type,
+                                status,
+                                start_date: None,
+                                end_date: None,
+                                page: Some(1), // Get all pages for combining
+                                page_size: Some(1000), // Large page size to get all
+                            };
+                            
+                            match client.list_applications(req).await {
+                                Ok(resp) => {
+                                    let inner = resp.into_inner();
+                                    total_count += inner.total_count;
+                                    for app in inner.results {
+                                        let dto = ApplicationResponseDto {
+                                            id: app.id,
+                                            application_type: app.application_type,
+                                            type_display: app.type_display,
+                                            status: app.status,
+                                            status_display: app.status_display,
+                                            submission_date: app.submission_date.as_ref().map(timestamp_to_iso_string),
+                                            feedback: app.feedback,
+                                            user_id: app.user_id,
+                                            created_at: app.created_at.as_ref().map(timestamp_to_iso_string),
+                                            updated_at: app.updated_at.as_ref().map(timestamp_to_iso_string),
+                                        };
+                                        all_applications.push(dto);
+                                    }
+                                }
+                                Err(e) => {
+                                    warn!(user_id = %created_user.id, error = %e, "Failed to get applications for user created by encadrant");
+                                    // Continue with other users instead of failing completely
+                                }
+                            }
+                        }
+                        
+                        // Apply pagination to combined results
+                        let page = params.page.unwrap_or(1);
+                        let page_size = params.limit.unwrap_or(10);
+                        let start_index = ((page - 1) * page_size) as usize;
+                        let end_index = (start_index + page_size as usize).min(all_applications.len());
+                        
+                        let paginated_results = if start_index < all_applications.len() {
+                            all_applications[start_index..end_index].to_vec()
+                        } else {
+                            Vec::new()
+                        };
+                        
+                        let total_pages = (total_count as f64 / page_size as f64).ceil() as i32;
+                        
+                        let response = PaginatedApplicationsDto {
+                            results: paginated_results,
+                            total_count,
+                            page,
+                            page_size,
+                            total_pages,
+                        };
+                        
+                        info!(user_id = %user.id, total_applications = all_applications.len(), "Applications queried successfully for encadrant");
+                        return Json(response).into_response();
+                    }
+                    Err(e) => {
+                        error!(user_id = %user.id, error = %e, "Failed to get users created by encadrant");
+                        return (
+                            StatusCode::INTERNAL_SERVER_ERROR,
+                            Json(serde_json::json!({"error": "Failed to get user permissions"})),
+                        ).into_response();
+                    }
+                }
+            }
+        }
+    }
+    
+    // For admin users, proceed with normal query
+    let req = ListApplicationsRequest {
+        user_id: params.user_id,
+        application_type,
+        status,
+        start_date: None,
+        end_date: None,
+        page: params.page,
+        page_size: params.limit,
+    };
+    
+    match client.list_applications(req).await {
+        Ok(resp) => {
+            info!(user_id = %user.id, "Applications queried successfully");
+            let inner = resp.into_inner();
+            let results = inner.results.into_iter().map(|app| ApplicationResponseDto {
+                id: app.id,
+                application_type: app.application_type,
+                type_display: app.type_display,
+                status: app.status,
+                status_display: app.status_display,
+                submission_date: app.submission_date.as_ref().map(timestamp_to_iso_string),
+                feedback: app.feedback,
+                user_id: app.user_id,
+                created_at: app.created_at.as_ref().map(timestamp_to_iso_string),
+                updated_at: app.updated_at.as_ref().map(timestamp_to_iso_string),
+            }).collect();
+            let dto = PaginatedApplicationsDto {
+                results,
+                total_count: inner.total_count,
+                page: inner.page,
+                page_size: inner.page_size,
+                total_pages: inner.total_pages,
+            };
+            Json(dto).into_response()
+        },
+        Err(e) => {
+            error!(user_id = %user.id, error = %e, "Failed to query applications");
+            (
+                StatusCode::BAD_GATEWAY,
+                Json(serde_json::json!({"error": "Failed to query applications", "details": e.to_string()})),
+            ).into_response()
+        }
+    }
+}
+
+async fn list_all_documents(
+    Extension(grpc_client): Extension<Arc<GrpcApplicationClient>>,
+    Extension(auth_service): Extension<Arc<AuthService>>,
+    AuthenticatedUser(user): AuthenticatedUser,
+) -> impl IntoResponse {
+    debug!(user_id = %user.id, role = ?user.role, "List all documents request");
+    
+    // Only admin and encadrant can list all documents
+    if user.role != Role::Admin && user.role != Role::Encadrant {
+        return (
+            StatusCode::FORBIDDEN,
+            Json(serde_json::json!({"error": "Forbidden: only admin and encadrant can list all documents"})),
+        ).into_response();
+    }
+    
+    use application_service::*;
+    let mut app_client = grpc_client.client.clone();
+    let mut doc_client = grpc_client.document_client.clone();
+    
+    // Get all documents based on user role
+    let mut all_documents = Vec::new();
+    
+    if user.role == Role::Admin {
+        // Admin can see all applications and their documents
+        let applications_request = ListApplicationsRequest {
+            user_id: None,
+            application_type: None,
+            status: None,
+            start_date: None,
+            end_date: None,
+            page: Some(1),
+            page_size: Some(1000), // Large page size to get all
+        };
+        
+        match app_client.list_applications(applications_request).await {
+            Ok(resp) => {
+                let applications = resp.into_inner().results;
+                
+                for app in applications {
+                    let doc_request = GetApplicationRequest { id: app.id.clone() };
+                    match doc_client.get_application_documents(doc_request).await {
+                        Ok(resp) => {
+                            let docs = resp.into_inner().documents;
+                            for doc in docs {
+                                let dto = DocumentResponseDto {
+                                    id: doc.id,
+                                    application_id: doc.application_id,
+                                    title: doc.title,
+                                    file_path: doc.file_path,
+                                    content_type: doc.content_type,
+                                    file_size: doc.file_size,
+                                    created_at: doc.created_at.as_ref().map(timestamp_to_iso_string),
+                                };
+                                all_documents.push(dto);
+                            }
+                        }
+                        Err(e) => {
+                            warn!(application_id = %app.id, error = %e, "Failed to get documents for application");
+                            // Continue with other applications instead of failing completely
+                        }
+                    }
+                }
+            }
+            Err(e) => {
+                error!(user_id = %user.id, error = %e, "Failed to get applications");
+                return (
+                    StatusCode::BAD_GATEWAY,
+                    Json(serde_json::json!({"error": "Failed to get applications", "details": e.to_string()})),
+                ).into_response();
+            }
+        }
+    } else if user.role == Role::Encadrant {
+        // Encadrant can only see documents from applications of users they created
+        match auth_service.user_repo.list_users(Some(user.id)).await {
+            Ok(created_users) => {
+                for created_user in created_users {
+                    let user_apps_request = ListApplicationsRequest {
+                        user_id: Some(created_user.id.to_string()),
+                        application_type: None,
+                        status: None,
+                        start_date: None,
+                        end_date: None,
+                        page: Some(1),
+                        page_size: Some(1000),
+                    };
+                    
+                    match app_client.list_applications(user_apps_request).await {
+                        Ok(resp) => {
+                            let user_applications = resp.into_inner().results;
+                            for app in user_applications {
+                                let doc_request = GetApplicationRequest { id: app.id.clone() };
+                                match doc_client.get_application_documents(doc_request).await {
+                                    Ok(resp) => {
+                                        let docs = resp.into_inner().documents;
+                                        for doc in docs {
+                                            let dto = DocumentResponseDto {
+                                                id: doc.id,
+                                                application_id: doc.application_id,
+                                                title: doc.title,
+                                                file_path: doc.file_path,
+                                                content_type: doc.content_type,
+                                                file_size: doc.file_size,
+                                                created_at: doc.created_at.as_ref().map(timestamp_to_iso_string),
+                                            };
+                                            all_documents.push(dto);
+                                        }
+                                    }
+                                    Err(e) => {
+                                        warn!(application_id = %app.id, error = %e, "Failed to get documents for application");
+                                    }
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            warn!(user_id = %created_user.id, error = %e, "Failed to get applications for user");
+                        }
+                    }
+                }
+            }
+            Err(e) => {
+                error!(user_id = %user.id, error = %e, "Failed to get users created by encadrant");
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(serde_json::json!({"error": "Failed to get user permissions"})),
+                ).into_response();
+            }
+        }
+    }
+    
+    info!(user_id = %user.id, total_documents = all_documents.len(), "All documents listed successfully");
+    Json(all_documents).into_response()
 }
 
 async fn get_application_by_id(
@@ -328,11 +691,11 @@ async fn get_application_by_id(
                     type_display: app.type_display,
                     status: app.status,
                     status_display: app.status_display,
-                    submission_date: app.submission_date.map(|ts| ts.seconds.to_string()),
+                    submission_date: app.submission_date.as_ref().map(timestamp_to_iso_string),
                     feedback: app.feedback,
                     user_id: app.user_id,
-                    created_at: app.created_at.map(|ts| ts.seconds.to_string()),
-                    updated_at: app.updated_at.map(|ts| ts.seconds.to_string()),
+                    created_at: app.created_at.as_ref().map(timestamp_to_iso_string),
+                    updated_at: app.updated_at.as_ref().map(timestamp_to_iso_string),
                 };
                 Json(dto).into_response()
             } else {
@@ -446,11 +809,11 @@ async fn update_application(
                 type_display: inner.type_display,
                 status: inner.status,
                 status_display: inner.status_display,
-                submission_date: inner.submission_date.map(|ts| ts.seconds.to_string()),
+                submission_date: inner.submission_date.as_ref().map(timestamp_to_iso_string),
                 feedback: inner.feedback,
                 user_id: inner.user_id,
-                created_at: inner.created_at.map(|ts| ts.seconds.to_string()),
-                updated_at: inner.updated_at.map(|ts| ts.seconds.to_string()),
+                created_at: inner.created_at.as_ref().map(timestamp_to_iso_string),
+                updated_at: inner.updated_at.as_ref().map(timestamp_to_iso_string),
             };
             Json(dto).into_response()
         },
@@ -603,7 +966,7 @@ async fn list_documents(
                 file_path: d.file_path,
                 content_type: d.content_type,
                 file_size: d.file_size,
-                created_at: d.created_at.map(|ts| ts.seconds.to_string()),
+                created_at: d.created_at.as_ref().map(timestamp_to_iso_string),
             }).collect::<Vec<_>>();
             Json(docs).into_response()
         },
@@ -657,7 +1020,7 @@ async fn get_document(
         file_path: doc.file_path,
         content_type: doc.content_type,
         file_size: doc.file_size,
-        created_at: doc.created_at.map(|ts| ts.seconds.to_string()),
+        created_at: doc.created_at.as_ref().map(timestamp_to_iso_string),
     };
     Json(dto).into_response()
 }
@@ -846,7 +1209,7 @@ async fn upload_document(
                 file_path: doc.file_path,
                 content_type: doc.content_type,
                 file_size: doc.file_size,
-                created_at: doc.created_at.map(|ts| ts.seconds.to_string()),
+                created_at: doc.created_at.as_ref().map(timestamp_to_iso_string),
             };
             Json(dto).into_response()
         },

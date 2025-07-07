@@ -1,0 +1,193 @@
+### Variables (Update these tokens after successful authentication)
+@admin_token = 
+@encadrant_token = 
+@user_token = 
+@refresh_token = 
+@application_id = 
+@document_id = 
+
+### =============================================================================
+### AUTHENTICATION TESTS - Nginx Proxy (Port 80)
+### =============================================================================
+
+### 1. Health Check
+GET http://localhost/health
+
+### 2. API Root
+GET http://localhost/
+
+### 3. Login as Admin (Get admin token first)
+POST http://localhost/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "admin123"
+}
+
+### 4. Login as Encadrant
+POST http://localhost/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "newencadrant@example.com",
+  "password": "newencadrant123"
+}
+
+### 5. Login as Student (User)
+POST http://localhost/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "newstudent@example.com",
+  "password": "newstudent123"
+}
+
+### 6. Register New Student
+POST http://localhost/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "student2@example.com",
+  "password": "student123",
+  "role": "Etudiant"
+}
+
+### 7. Register New Encadrant (Admin only)
+POST http://localhost/api/auth/register
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "email": "encadrant2@example.com",
+  "password": "encadrant123",
+  "role": "Encadrant"
+}
+
+### 8. Get Current User Info (Admin)
+GET http://localhost/api/auth/me
+Authorization: Bearer {{admin_token}}
+
+### 9. Get Current User Info (Encadrant)
+GET http://localhost/api/auth/me
+Authorization: Bearer {{encadrant_token}}
+
+### 10. Get Current User Info (Student)
+GET http://localhost/api/auth/me
+Authorization: Bearer {{user_token}}
+
+### 11. Get All Users (Admin only)
+GET http://localhost/api/auth/users
+Authorization: Bearer {{admin_token}}
+
+### 12. Refresh Token
+POST http://localhost/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "{{refresh_token}}"
+}
+
+### 13. Verify Token (Valid token)
+POST http://localhost/api/auth/verify
+Content-Type: application/json
+
+{
+  "token": "{{admin_token}}"
+}
+
+### 14. Verify Token (Invalid token)
+POST http://localhost/api/auth/verify
+Content-Type: application/json
+
+{
+  "token": "invalid-token-here"
+}
+
+### =============================================================================
+### ERROR CASES
+### =============================================================================
+
+### 15. Login with Invalid Credentials
+POST http://localhost/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "wrong@example.com",
+  "password": "wrongpassword"
+}
+
+### 16. Register with Missing Fields
+POST http://localhost/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "incomplete@example.com"
+}
+
+### 17. Access Protected Route Without Token
+GET http://localhost/api/auth/me
+
+### 18. Access Admin Route as Non-Admin
+GET http://localhost/api/auth/users
+Authorization: Bearer {{user_token}}
+
+### =============================================================================
+### APPLICATIONS ENDPOINTS TESTING
+### =============================================================================
+
+### 19. Get All Applications (Admin)
+GET http://localhost/api/applications
+Authorization: Bearer {{admin_token}}
+
+### 20. Create Application (Student)
+POST http://localhost/api/applications
+Content-Type: application/json
+Authorization: Bearer {{user_token}}
+
+{
+  "application_type": "Internship",
+  "type_specific_data": {
+    "company": "Tech Corp",
+    "position": "Software Developer",
+    "duration_months": 6,
+    "start_date": "2025-09-01",
+    "supervisor_name": "John Doe",
+    "supervisor_email": "john@techcorp.com",
+    "description": "Full-stack development internship",
+    "requirements": "React, Node.js experience"
+  }
+}
+
+### =============================================================================
+### DOCUMENTS ENDPOINTS TESTING
+### =============================================================================
+
+### 21. Upload Document
+POST http://localhost/api/documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+Authorization: Bearer {{user_token}}
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="application_id"
+
+{{application_id}}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+CV and Cover Letter
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="cv.pdf"
+Content-Type: application/pdf
+
+%PDF-1.4
+Sample PDF content for testing
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 22. Get Document by ID
+GET http://localhost/api/documents/{{document_id}}
+Authorization: Bearer {{user_token}}
+
+### 23. Get Document Download URL
+GET http://localhost/api/documents/{{document_id}}/download
+Authorization: Bearer {{user_token}}

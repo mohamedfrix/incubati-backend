@@ -1,0 +1,270 @@
+### Authentication Tests - Nginx Reverse Proxy Routes
+### Base URL: http://localhost:5000/api (routes through Nginx to API Gateway)
+
+@baseUrl = http://localhost:5000/api
+@adminEmail = admin@incubati.com
+@adminPassword = admin123456
+
+@admin_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiODE2MmExMS0xYTQ4LTQzMjEtYjRiMC1iMWZmN2Q0ODlkZmYiLCJlbWFpbCI6ImFkbWluQGluY3ViYXRpLmNvbSIsInJvbGUiOiJhZG1pbiIsImV4cCI6MTc1MTg5MjYyOX0.jA7LcfCu_8YPfa2smzHezNCkk2G8DO0hoRbjm6UrE38
+
+@student_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkMzFiZDQwOC05ZjRmLTQzYzItYmUyNi00NTUxNTg1NjA3YWQiLCJlbWFpbCI6InN0dWRlbnRAZXhhbXBsZS5jb20iLCJyb2xlIjoiZXR1ZGlhbnQiLCJleHAiOjE3NTE4OTI2NDZ9.fwvEOt9_QScKj50M61B-2bFjC4fPxsUalWAaMfx1wKU
+
+@encadrant_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjNTg4ZjcwYS1lMzg2LTQzMDYtYWRmZC1jMDZiN2FlNTg5MjkiLCJlbWFpbCI6ImVuY2FkcmFudEBleGFtcGxlLmNvbSIsInJvbGUiOiJlbmNhZHJhbnQiLCJleHAiOjE3NTE4OTI2NjB9.QmHrFzjIgnndpeNkGlR8xvExx0cFQ1LGkdAZPO_jKJA
+
+@incube_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxZTg4MjMzMS1iZThlLTQ4MWEtOWU0NC01M2NiNWZkODE4NGQiLCJlbWFpbCI6ImluY3ViZUBleGFtcGxlLmNvbSIsInJvbGUiOiJpbmN1YmUiLCJleHAiOjE3NTE4ODcyMzR9.rGZyIO_fbXr55MpsbLEle66U25IJ8kNGihEwNEmCSTg
+
+### Health Check
+GET {{baseUrl}}/auth/health
+
+### 1. Admin Login - Valid Credentials
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+### Student Login - Valid Credentials
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "student@example.com",
+  "password": "securepassword123"
+}
+
+
+### Incube Login - Valid Credentials
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "incube@example.com",
+  "password": "securepassword123"
+}
+
+### Encadrant Login - Valid Credentials
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "encadrant@example.com",
+  "password": "securepassword123"
+}
+
+# Save the access_token and refresh_token from the response for subsequent tests
+
+### 2. Login - Invalid Credentials
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "wrongpassword"
+}
+
+### 3. Login - Missing Password
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}"
+}
+
+### 4. Login - Invalid Email Format
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "invalid-email",
+  "password": "{{adminPassword}}"
+}
+
+### 5. Login - Non-existent User
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com",
+  "password": "password123"
+}
+
+### 6. Login - Empty Request Body
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{}
+
+### 7. Login - SQL Injection Attempt
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "email": "admin'; DROP TABLE users; --",
+  "password": "{{adminPassword}}"
+}
+
+### 8. Register User - Valid Etudiant (Admin Token Required)
+# First get admin token from login above, then use it here
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "email": "student@example.com",
+  "password": "securepassword123",
+  "nom": "Test",
+  "prenom": "Student",
+  "role": "Etudiant"
+}
+
+### 9. Register User - Valid Incube (Admin Token Required)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "email": "incube@example.com",
+  "password": "securepassword123",
+  "nom": "Test",
+  "prenom": "Incube",
+  "role": "Incube"
+}
+
+### 10. Register User - Valid Encadrant (Admin Token Required)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "email": "encadrant@example.com",
+  "password": "securepassword123",
+  "nom": "Test",
+  "prenom": "Encadrant",
+  "role": "Encadrant"
+}
+
+### 11. Register User - Duplicate Email
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "email": "{{adminEmail}}",
+  "password": "password123",
+  "nom": "Another",
+  "prenom": "Admin",
+  "role": "Admin"
+}
+
+### 12. Register User - Invalid Role
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "email": "invalidrole@example.com",
+  "password": "password123",
+  "nom": "Invalid",
+  "prenom": "Role",
+  "role": "invalid_role"
+}
+
+### 13. Register User - Missing Fields
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "email": "incomplete@example.com",
+  "password": "password123"
+}
+
+### 14. Register User - Weak Password
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "email": "weakpass@example.com",
+  "password": "123",
+  "nom": "Weak",
+  "prenom": "Password",
+  "role": "Etudiant"
+}
+
+### 15. Register User - No Authorization
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "noauth@example.com",
+  "password": "password123",
+  "nom": "No",
+  "prenom": "Auth",
+  "role": "Etudiant"
+}
+
+### 16. Register User - XSS Attempt
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "email": "xss@example.com",
+  "password": "password123",
+  "nom": "<script>alert('xss')</script>",
+  "prenom": "Test",
+  "role": "Etudiant"
+}
+
+### 17. Verify Token - Valid Token
+POST {{baseUrl}}/auth/verify-token
+Authorization: Bearer {{admin_token}}
+
+### 18. Verify Token - Invalid Token
+POST {{baseUrl}}/auth/verify-token
+Authorization: Bearer invalid.token.here
+
+### 19. Verify Token - No Authorization Header
+POST {{baseUrl}}/auth/verify-token
+
+### 20. Refresh Token - Valid
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refresh_token": "{{admin_token}}"
+}
+
+### 21. Refresh Token - Invalid
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refresh_token": "invalid.refresh.token"
+}
+
+### 22. Refresh Token - Missing Token
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: application/json
+
+{}
+
+### 23. List Users - Admin Access
+GET {{baseUrl}}/auth/users
+Authorization: Bearer {{admin_token}}
+
+### 24. List Users - No Authorization
+GET {{baseUrl}}/auth/users
+
+### 25. List Users - Invalid Token
+GET {{baseUrl}}/auth/users
+Authorization: Bearer invalid.token.here
+
+### 26. List Users - Student Token (Should Fail)
+# Use a student token here - students shouldn't be able to list users
+GET {{baseUrl}}/auth/users
+Authorization: Bearer YOUR_STUDENT_ACCESS_TOKEN_HERE

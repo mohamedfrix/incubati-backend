@@ -185,7 +185,7 @@ impl MinioClient {
     ) -> AppResult<String> {
         info!("Generating download URL for bucket: {}, key: {}", bucket_name, object_key);
 
-        // First, check if the object exists
+        // First, check if the object exists using internal endpoint
         let head_request = HeadObjectRequest {
             bucket: bucket_name.to_string(),
             key: object_key.to_string(),
@@ -198,11 +198,11 @@ impl MinioClient {
                 AppError::NotFound(format!("File not found: {}", object_key))
             })?;
 
-        // For now, return a simple URL pattern
-        // In production, you'd implement proper presigned URL generation
-        let url = format!("{}/{}/{}", self.config.endpoint, bucket_name, object_key);
+        // Generate external URL that clients can access through nginx reverse proxy
+        // This will route through nginx to MinIO: external_url_base/bucket/object_key
+        let url = format!("{}/{}/{}", self.config.external_url_base, bucket_name, object_key);
         
-        info!("Generated download URL for {}", object_key);
+        info!("Generated external download URL for {}: {}", object_key, url);
         Ok(url)
     }
 

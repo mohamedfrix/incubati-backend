@@ -1,5 +1,5 @@
-use axum::{async_trait, extract::{FromRequestParts}, http::{request::Parts, StatusCode}, Extension, response::{IntoResponse, Response}, Json};
-use crate::utils::jwt;
+use std::future::Future;
+use axum::{extract::FromRequestParts, http::{request::Parts, StatusCode}, Extension, response::{IntoResponse, Response}, Json};
 use crate::models::user::User;
 use crate::service::auth_service::AuthService;
 use std::sync::Arc;
@@ -14,7 +14,6 @@ pub struct AuthErrorResponse {
 
 pub struct AuthenticatedUser(pub User);
 
-#[async_trait]
 impl<S> FromRequestParts<S> for AuthenticatedUser
 where
     Arc<AuthService>: Send + Sync,
@@ -22,7 +21,11 @@ where
 {
     type Rejection = Response;
 
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+    fn from_request_parts(
+        parts: &mut Parts,
+        state: &S,
+    ) -> impl Future<Output = Result<Self, Self::Rejection>> + Send {
+        async move {
         debug!("Entering AuthenticatedUser extractor");
         let Extension(auth_service) = Extension::<Arc<AuthService>>::from_request_parts(parts, state).await.map_err(|e| {
             error!(error = %e, "AuthService missing in request extensions");
@@ -43,7 +46,16 @@ where
             };
             return Err((StatusCode::UNAUTHORIZED, Json(err)).into_response());
         }
-        let token = token.unwrap();
+        let token = match token {
+            Some(t) => t,
+            None => {
+                let err = AuthErrorResponse {
+                    error: "Authentication required. Please log in.".to_string(),
+                    developer_message: "Token extraction failed.".to_string(),
+                };
+                return Err((StatusCode::UNAUTHORIZED, Json(err)).into_response());
+            }
+        };
         debug!("Token extracted from Authorization header");
         let user_dto = match auth_service.verify_token(token).await {
             Ok(user) => {
@@ -72,5 +84,6 @@ where
         };
         debug!(user_id = %user.id, "AuthenticatedUser extractor succeeded");
         Ok(AuthenticatedUser(user))
+        }
     }
 } 

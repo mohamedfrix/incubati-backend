@@ -1,0 +1,267 @@
+### Application Service Tests - Nginx Reverse Proxy Routes
+### Base URL: http://localhost:5000/api (routes through Nginx to API Gateway)
+
+@baseUrl = http://localhost:5000/api
+
+@admin_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiODE2MmExMS0xYTQ4LTQzMjEtYjRiMC1iMWZmN2Q0ODlkZmYiLCJlbWFpbCI6ImFkbWluQGluY3ViYXRpLmNvbSIsInJvbGUiOiJhZG1pbiIsImV4cCI6MTc1MTg5MDc2OH0.IBw-0CYqJ55OmSTRMvh2JbA8U7krOVga7OP_6emLwZ4
+
+@student_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkMzFiZDQwOC05ZjRmLTQzYzItYmUyNi00NTUxNTg1NjA3YWQiLCJlbWFpbCI6InN0dWRlbnRAZXhhbXBsZS5jb20iLCJyb2xlIjoiZXR1ZGlhbnQiLCJleHAiOjE3NTE4OTA3ODZ9.6CAqFcNyJvkG3GGGCEuzHI3dGir3dx41cJT21CQ6x3g
+
+@incube_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxZTg4MjMzMS1iZThlLTQ4MWEtOWU0NC01M2NiNWZkODE4NGQiLCJlbWFpbCI6ImluY3ViZUBleGFtcGxlLmNvbSIsInJvbGUiOiJpbmN1YmUiLCJleHAiOjE3NTE4ODcyMzR9.rGZyIO_fbXr55MpsbLEle66U25IJ8kNGihEwNEmCSTg
+
+@encadrant_token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjNTg4ZjcwYS1lMzg2LTQzMDYtYWRmZC1jMDZiN2FlNTg5MjkiLCJlbWFpbCI6ImVuY2FkcmFudEBleGFtcGxlLmNvbSIsInJvbGUiOiJlbmNhZHJhbnQiLCJleHAiOjE3NTE4OTE4MTV9.5GVHM_xxTip0mA7GEX8bHHv6CdAM67A1PztdhkEn90M
+
+@application_id = 780c1ce4-782a-48e4-b366-9343d2463d9f
+
+### Prerequisites: 
+# 1. Get admin token from auth-nginx.http tests
+# 2. Create some student/incube users if needed
+# 3. Use their tokens for creating applications
+
+### Health Check
+GET {{baseUrl}}/applications/health
+
+### 1. Create Internship Application - Valid
+POST {{baseUrl}}/applications
+Content-Type: application/json
+Authorization: Bearer {{student_token}}
+
+{
+  "application_type": "internship",
+  "type_specific_data": {
+    "company": "TechCorp Inc.",
+    "position": "Software Developer Intern",
+    "duration_months": 6,
+    "start_date": "2025-08-01",
+    "supervisor_name": "John Smith",
+    "supervisor_email": "john.smith@techcorp.com",
+    "description": "Full-stack development internship focusing on React and Node.js",
+    "requirements": "Knowledge of JavaScript, Git, and basic database concepts"
+  }
+}
+
+# Save the application ID from the response
+
+### 2. Create Incubation Application - Valid
+POST {{baseUrl}}/applications
+Content-Type: application/json
+Authorization: Bearer {{incube_token}}
+
+{
+  "application_type": "incubation",
+  "type_specific_data": {
+    "project_name": "EcoTrack App",
+    "business_model": "Freemium SaaS model with premium features",
+    "target_market": "Environmentally conscious consumers and small businesses",
+    "funding_amount": "50000.00",
+    "team_size": 3,
+    "project_stage": "MVP Development",
+    "description": "Mobile app for tracking personal carbon footprint and sustainability goals"
+  }
+}
+
+### 3. Create PFE Application - Valid
+POST {{baseUrl}}/applications
+Content-Type: application/json
+Authorization: Bearer {{student_token}}
+
+{
+  "application_type": "pfe",
+  "type_specific_data": {
+    "title": "Machine Learning for Medical Diagnosis",
+    "supervisor_name": "Dr. Sarah Johnson",
+    "company": "MedTech Solutions",
+    "academic_year": "2024-2025",
+    "specialization": "Computer Science - AI",
+    "objectives": "Develop and evaluate ML models for early disease detection using medical imaging",
+    "methodology": "Supervised learning using CNNs on medical image datasets",
+    "expected_outcomes": "Achieve 95% accuracy in disease classification with deployed model"
+  }
+}
+
+### 4. Create Application - Invalid Type
+POST {{baseUrl}}/applications
+Content-Type: application/json
+Authorization: Bearer {{student_token}}
+
+{
+  "application_type": "invalid_type",
+  "type_specific_data": {
+    "company": "Test Corp",
+    "position": "Test Position"
+  }
+}
+
+### 5. Create Application - Missing Required Fields
+POST {{baseUrl}}/applications
+Content-Type: application/json
+Authorization: Bearer {{student_token}}
+
+{
+  "application_type": "internship",
+  "type_specific_data": {
+    "company": "Test Corp"
+  }
+}
+
+### 6. Create Application - No Authorization
+POST {{baseUrl}}/applications
+Content-Type: application/json
+
+{
+  "application_type": "internship",
+  "type_specific_data": {
+    "company": "Test Corp",
+    "position": "Test Position",
+    "duration_months": 6,
+    "start_date": "2025-08-01",
+    "supervisor_name": "Test Supervisor",
+    "supervisor_email": "test@example.com",
+    "description": "Test description",
+    "requirements": "Test requirements"
+  }
+}
+
+### 7. Get All Applications for User
+GET {{baseUrl}}/applications
+Authorization: Bearer {{student_token}}
+
+### 8. Get All Applications - No Authorization
+GET {{baseUrl}}/applications
+
+### 9. Get Specific Application by ID
+GET {{baseUrl}}/applications/{{application_id}}
+Authorization: Bearer {{student_token}}
+
+### 10. Get Application - Invalid UUID
+GET {{baseUrl}}/applications/invalid-uuid
+Authorization: Bearer {{student_token}}
+
+### 11. Get Application - Non-existent ID
+GET {{baseUrl}}/applications/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{student_token}}
+
+### 12. Get Application - Other User's Application (Should Fail)
+GET {{baseUrl}}/applications/2025a922-6d28-430c-8f11-fafd3f26cb94
+Authorization: Bearer {{student_token}}
+
+### 13. Update Application Status - Admin
+PATCH {{baseUrl}}/applications/{{application_id}}/change_status
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "status": "approuvee",
+  "feedback": "Application approved after review. Please proceed with the next steps."
+}
+
+### 14. Update Application Status - Encadrant
+PATCH {{baseUrl}}/applications/{{application_id}}/change_status
+Content-Type: application/json
+Authorization: Bearer {{encadrant_token}}
+
+{
+  "status": "en_revision",
+  "feedback": "Please provide more details about the project timeline."
+}
+
+### 15. Update Application Status - Student (Should Fail)
+PATCH {{baseUrl}}/applications/YOUR_APPLICATION_ID_HERE/change_status
+Content-Type: application/json
+Authorization: Bearer {{student_token}}
+
+{
+  "status": "approuvee",
+  "feedback": "Student trying to approve their own application"
+}
+
+### 16. Update Application Status - Invalid Status
+PATCH {{baseUrl}}/applications/{{application_id}}/change_status
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "status": "invalid_status",
+  "feedback": "Testing invalid status"
+}
+
+### 17. Update Application Status
+PATCH {{baseUrl}}/applications/{{application_id}}/change_status
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "status": "approuvee"
+}
+
+### 18. Query Applications - Admin (All Applications)
+GET {{baseUrl}}/applications/query?page=1&limit=10
+Authorization: Bearer {{admin_token}}
+
+### 19. Query Applications - Filter by Status
+GET {{baseUrl}}/applications/query?status=brouillon&page=1&limit=10
+Authorization: Bearer {{admin_token}}
+
+### 20. Query Applications - Filter by Type
+GET {{baseUrl}}/applications/query?application_type=internship&page=1&limit=10
+Authorization: Bearer {{admin_token}}
+
+### 21. Query Applications - Multiple Filters
+GET {{baseUrl}}/applications/query?status=approuvee&application_type=internship&page=1&limit=5
+Authorization: Bearer {{admin_token}}
+
+### 22. Query Applications - Encadrant (Only Their Users)
+GET {{baseUrl}}/applications/query?page=1&limit=10
+Authorization: Bearer {{encadrant_token}}
+
+### 23. Query Applications - Student (Should Fail)
+GET {{baseUrl}}/applications/query?page=1&limit=10
+Authorization: Bearer {{student_token}}
+
+### 24. Query Applications - Invalid Pagination
+GET {{baseUrl}}/applications/query?page=0&limit=0
+Authorization: Bearer {{admin_token}}
+
+### 25. Query Applications - Large Limit
+GET {{baseUrl}}/applications/query?page=1&limit=1000
+Authorization: Bearer {{admin_token}}
+
+### 26. Create Multiple Applications for Testing
+# Create internship
+POST {{baseUrl}}/applications
+Content-Type: application/json
+Authorization: Bearer {{student_token}}
+
+{
+  "application_type": "internship",
+  "type_specific_data": {
+    "company": "StartupXYZ",
+    "position": "Frontend Developer",
+    "duration_months": 4,
+    "start_date": "2025-09-01",
+    "supervisor_name": "Jane Doe",
+    "supervisor_email": "jane@startupxyz.com",
+    "description": "React.js development for e-commerce platform",
+    "requirements": "React, TypeScript, CSS"
+  }
+}
+
+### 27. Create Multiple Applications for Testing
+# Create PFE
+POST {{baseUrl}}/applications
+Content-Type: application/json
+Authorization: Bearer {{student_token}}
+
+{
+  "application_type": "pfe",
+  "type_specific_data": {
+    "title": "Blockchain-based Supply Chain Management",
+    "supervisor_name": "Prof. Ahmed Ben Ali",
+    "company": "BlockTech Solutions",
+    "academic_year": "2024-2025",
+    "specialization": "Computer Science - Blockchain",
+    "objectives": "Design and implement a transparent supply chain tracking system",
+    "methodology": "Smart contracts development using Solidity and Web3",
+    "expected_outcomes": "Fully functional DApp with real-time tracking capabilities"
+  }
+}

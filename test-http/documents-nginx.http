@@ -1,0 +1,121 @@
+### Document Service Tests - Using Nginx Reverse Proxy
+### These tests use the nginx reverse proxy routes (port 80) instead of direct service ports
+
+@baseUrl = http://localhost/api
+
+### 1. Upload document for internship application
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=boundary123
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+--boundary123
+Content-Disposition: form-data; name="application_id"
+
+APPLICATION_ID_HERE
+--boundary123
+Content-Disposition: form-data; name="document_type"
+
+cv
+--boundary123
+Content-Disposition: form-data; name="file"; filename="cv.pdf"
+Content-Type: application/pdf
+
+[Binary PDF content would go here - use a real file in actual testing]
+--boundary123--
+
+### 2. Upload motivation letter
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=boundary123
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+--boundary123
+Content-Disposition: form-data; name="application_id"
+
+APPLICATION_ID_HERE
+--boundary123
+Content-Disposition: form-data; name="document_type"
+
+motivation_letter
+--boundary123
+Content-Disposition: form-data; name="file"; filename="motivation.pdf"
+Content-Type: application/pdf
+
+[Binary PDF content would go here]
+--boundary123--
+
+### 3. Upload academic transcript
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=boundary123
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+--boundary123
+Content-Disposition: form-data; name="application_id"
+
+APPLICATION_ID_HERE
+--boundary123
+Content-Disposition: form-data; name="document_type"
+
+academic_transcript
+--boundary123
+Content-Disposition: form-data; name="file"; filename="transcript.pdf"
+Content-Type: application/pdf
+
+[Binary PDF content would go here]
+--boundary123--
+
+### 4. Get all documents for a specific application
+GET {{baseUrl}}/documents?application_id=APPLICATION_ID_HERE
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+### 5. Get specific document by ID
+GET {{baseUrl}}/documents/DOCUMENT_ID_HERE
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+### 6. Test file download through nginx storage route
+### This should return a download URL that works through nginx reverse proxy
+GET {{baseUrl}}/documents/DOCUMENT_ID_HERE/download
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+### 7. Test direct file access through nginx storage proxy
+### Use the download URL returned from the previous request
+GET http://localhost/storage/documents/FILENAME_HERE
+
+### 8. List all documents (admin only)
+GET {{baseUrl}}/documents
+Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN_HERE
+
+### 9. Upload with invalid application ID
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=boundary123
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+--boundary123
+Content-Disposition: form-data; name="application_id"
+
+invalid-uuid
+--boundary123
+Content-Disposition: form-data; name="document_type"
+
+cv
+--boundary123
+Content-Disposition: form-data; name="file"; filename="test.pdf"
+Content-Type: application/pdf
+
+[Binary content]
+--boundary123--
+
+### 10. Upload with missing application ID
+POST {{baseUrl}}/documents
+Content-Type: multipart/form-data; boundary=boundary123
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+--boundary123
+Content-Disposition: form-data; name="document_type"
+
+cv
+--boundary123
+Content-Disposition: form-data; name="file"; filename="test.pdf"
+Content-Type: application/pdf
+
+[Binary content]
+--boundary123--

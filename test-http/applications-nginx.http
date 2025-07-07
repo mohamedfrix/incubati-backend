@@ -1,0 +1,85 @@
+### Application Service Tests - Using Nginx Reverse Proxy
+### These tests use the nginx reverse proxy routes (port 80) instead of direct service ports
+
+@baseUrl = http://localhost/api
+
+### Test Application Service health endpoint (direct - not through API Gateway)
+GET http://localhost:4001/health
+
+### 1. Create Internship Application
+POST {{baseUrl}}/applications
+Content-Type: application/json
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+{
+  "application_type": "internship",
+  "internship_data": {
+    "company": "TechCorp Inc.",
+    "position": "Software Developer Intern",
+    "duration_months": 6,
+    "start_date": "2025-07-01",
+    "supervisor_name": "John Smith",
+    "supervisor_email": "john.smith@techcorp.com",
+    "description": "Full-stack development internship focusing on React and Node.js",
+    "requirements": "Knowledge of JavaScript, Git, and basic database concepts"
+  }
+}
+
+### 2. Create Incubation Application
+POST {{baseUrl}}/applications
+Content-Type: application/json
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+{
+  "application_type": "incubation",
+  "incubation_data": {
+    "project_name": "EcoTrack App",
+    "business_model": "Freemium SaaS model with premium features",
+    "target_market": "Environmentally conscious consumers and small businesses",
+    "funding_amount": 50000.00,
+    "team_size": 3,
+    "project_stage": "MVP Development",
+    "description": "Mobile app for tracking personal carbon footprint and sustainability goals"
+  }
+}
+
+### 3. Create PFE Application
+POST {{baseUrl}}/applications
+Content-Type: application/json
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+{
+  "application_type": "pfe",
+  "pfe_data": {
+    "title": "Machine Learning for Medical Diagnosis",
+    "supervisor_name": "Dr. Sarah Johnson",
+    "company": "MedTech Solutions",
+    "academic_year": "2024-2025",
+    "specialization": "Computer Science - AI",
+    "objectives": "Develop and evaluate ML models for early disease detection using medical imaging",
+    "methodology": "Supervised learning using CNNs on medical image datasets",
+    "expected_outcomes": "Achieve 95% accuracy in disease classification with deployed model"
+  }
+}
+
+### 4. Get all applications for authenticated user
+GET {{baseUrl}}/applications
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+### 5. Get specific application by ID
+GET {{baseUrl}}/applications/APPLICATION_ID_HERE
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+### 6. Update application status (admin/encadrant only)
+PATCH {{baseUrl}}/applications/APPLICATION_ID_HERE/status
+Content-Type: application/json
+Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN_HERE
+
+{
+  "status": "approuvee",
+  "feedback": "Application approved. Please proceed with next steps."
+}
+
+### 7. Query applications with filters (admin/encadrant only)
+GET {{baseUrl}}/applications/query?status=en_attente&application_type=internship&page=1&limit=10
+Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN_HERE

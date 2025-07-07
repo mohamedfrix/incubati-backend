@@ -6,4 +6,5 @@ pub mod middleware;
 pub mod service;
 pub mod dto;
 pub mod repository;
-pub mod grpc_client; 
+pub mod grpc_client;
+pub mod startup; 
