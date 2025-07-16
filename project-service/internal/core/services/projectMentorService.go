@@ -33,15 +33,34 @@ func NewProjectMentorService(projectMentorRepo ports.ProjectMentorRepo, projectR
 
 // AssignMentor assigns a mentor to a project
 func (s *projectMentorService) AssignMentor(ctx context.Context, input domain.AddProjectMentorRequest, projectID uuid.UUID) (*domain.ProjectMentor, error) {
-	// retrieve the mentor:
-	// create projectMentor object:
-	var projectMentor domain.ProjectMentor
-	mentorID, err := uuid.Parse(input.Mentor)
-	if err != nil {
-		return nil, fmt.Errorf("invalid mentor ID: %w", err)
+	// Validate mentor ID and check if mentor exists
+	if input.MentorID == uuid.Nil {
+		return nil, fmt.Errorf("mentor ID is required")
 	}
-	projectMentor.MentorID = mentorID
-	projectMentor.MentorshipType = input.Mentorship
+
+	// Verify mentor exists and is active
+	mentor, err := s.mentorRepo.GetMentorByID(input.MentorID)
+	if err != nil {
+		return nil, fmt.Errorf("mentor not found: %w", err)
+	}
+
+	if !mentor.IsActive {
+		return nil, fmt.Errorf("mentor is not active")
+	}
+
+	// Check if mentor is already assigned to this project
+	exists, err := s.projectMentorRepo.IsProjectMentorshipExists(projectID, input.MentorID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check existing mentorship: %w", err)
+	}
+	if exists {
+		return nil, fmt.Errorf("mentor is already assigned to this project")
+	}
+
+	// Create projectMentor object:
+	var projectMentor domain.ProjectMentor
+	projectMentor.MentorID = input.MentorID
+	projectMentor.MentorshipType = input.MentorshipType
 
 	s_date, err := utils.FromStringToTime(input.StartDate)
 	if err != nil {
@@ -75,23 +94,23 @@ func (s *projectMentorService) AssignMentor(ctx context.Context, input domain.Ad
 	}
 
 	// Check if mentor exists and is active
-	mentor, err := s.mentorRepo.GetMentorByID(projectMentor.MentorID)
+	mentorValidation, err := s.mentorRepo.GetMentorByID(projectMentor.MentorID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get mentor: %w", err)
 	}
-	if mentor == nil {
+	if mentorValidation == nil {
 		return nil, errors.New("mentor not found")
 	}
-	if !mentor.IsActive {
+	if !mentorValidation.IsActive {
 		return nil, errors.New("mentor is not active")
 	}
 
 	// Check if mentorship already exists
-	exists, err := s.projectMentorRepo.IsProjectMentorshipExists(projectMentor.ProjectID, projectMentor.MentorID)
+	existsValidation, err := s.projectMentorRepo.IsProjectMentorshipExists(projectMentor.ProjectID, projectMentor.MentorID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check mentorship existence: %w", err)
 	}
-	if exists {
+	if existsValidation {
 		return nil, errors.New("mentor is already assigned to this project")
 	}
 

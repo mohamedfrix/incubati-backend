@@ -28,7 +28,13 @@ func NewProjectMentorHandler(projectMentorService ports.ProjectMentorService, Pr
 
 
 func (h *ProjectMentorHandler) AddMentorToProject(w http.ResponseWriter, r *http.Request) {
-	var input domain.AddProjectMentorRequest
+	var input struct {
+		MentorID       string `json:"mentor_id"`
+		MentorshipType string `json:"mentorship_type"`
+		StartDate      string `json:"start_date"`
+		EndDate        string `json:"end_date"`
+		HoursCommitted int    `json:"hours_committed"`
+	}
 
 	err := utils.ReadJSON(w, r, &input)
 	if err != nil {
@@ -36,6 +42,30 @@ func (h *ProjectMentorHandler) AddMentorToProject(w http.ResponseWriter, r *http
 		return
 	}
 
+	// Validate mentor ID
+	mentorID, err := uuid.Parse(input.MentorID)
+	if err != nil {
+		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"error": "Invalid mentor ID format"}, nil)
+		return
+	}
+
+	// Validate required fields
+	if input.MentorshipType == "" {
+		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"error": "mentorship_type is required"}, nil)
+		return
+	}
+
+	if input.StartDate == "" {
+		utils.WriteJSON(w, r, http.StatusBadRequest, utils.Envelope{"error": "start_date is required"}, nil)
+		return
+	}
+
+	// Get user ID from context (assuming auth middleware sets this)
+	assigneeID, err := getUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteJSON(w, r, http.StatusUnauthorized, utils.Envelope{"error": "User not authenticated"}, nil)
+		return
+	}
 
 	// read the project ID:
 	projectID_str := utils.GetURLparams(r, "project_id")
@@ -45,20 +75,30 @@ func (h *ProjectMentorHandler) AddMentorToProject(w http.ResponseWriter, r *http
 		return
 	}
 
+	// Convert to domain request
+	domainInput := domain.AddProjectMentorRequest{
+		UserID:         assigneeID,
+		MentorID:       mentorID,
+		MentorshipType: input.MentorshipType,
+		StartDate:      input.StartDate,
+		EndDate:        input.EndDate,
+		HoursCommitted: input.HoursCommitted,
+	}
+
 	// check permission here:
 	//! this is already checked in the service
-	permissions, err := h.ProjectMemberService.CheckMemberPermissions(projectID_uuid, input.UserID)
+	permissions, err := h.ProjectMemberService.CheckMemberPermissions(projectID_uuid, assigneeID)
 	if err != nil {
 		utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": "failed to check permissions"}, nil)
 		return
 	}
 	if !permissions.CanManageTasks {
-		project, err := h.ProjectService.GetProjectByID(projectID_str, input.UserID)
+		project, err := h.ProjectService.GetProjectByID(projectID_str, assigneeID)
 		if err != nil {
 			utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": "failed to get project"}, nil)
 			return
 		}
-		if project.OwnerID != input.UserID {
+		if project.OwnerID != assigneeID {
 			utils.WriteJSON(w, r, http.StatusUnauthorized, utils.Envelope{"error": "you are not allowed to assign a mentor to this project"}, nil)
 			return
 		}
@@ -66,7 +106,7 @@ func (h *ProjectMentorHandler) AddMentorToProject(w http.ResponseWriter, r *http
 
 
 	// assign the mentor:
-	pMentor, err := h.ProjectMentorService.AssignMentor(r.Context(), input, projectID_uuid)
+	pMentor, err := h.ProjectMentorService.AssignMentor(r.Context(), domainInput, projectID_uuid)
 	if err != nil {
 		utils.WriteJSON(w, r, http.StatusInternalServerError, utils.Envelope{"error": err.Error()}, nil)
 		return

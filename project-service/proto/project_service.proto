@@ -1,0 +1,488 @@
+syntax = "proto3";
+
+package project;
+
+option go_package = "github.com/moulaybdl/incubAT/project_service/proto";
+
+// Project Service Definition
+service ProjectService {
+    // Project operations
+    rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse);
+    rpc GetProject(GetProjectRequest) returns (GetProjectResponse);
+    rpc UpdateProject(UpdateProjectRequest) returns (UpdateProjectResponse);
+    rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse);
+    rpc ListProjects(ListProjectsRequest) returns (ListProjectsResponse);
+    rpc GetProjectStatistics(GetProjectStatisticsRequest) returns (GetProjectStatisticsResponse);
+    
+    // Project Member operations
+    rpc AddMemberToProject(AddMemberToProjectRequest) returns (AddMemberToProjectResponse);
+    
+    // Mentor operations
+    rpc RegisterMentor(RegisterMentorRequest) returns (RegisterMentorResponse);
+    
+    // Project Mentor operations
+    rpc AddMentorToProject(AddMentorToProjectRequest) returns (AddMentorToProjectResponse);
+}
+
+// Enums for project types and statuses
+enum ProjectType {
+    PROJECT_TYPE_UNSPECIFIED = 0;
+    INCUBATION = 1;
+    INTERNSHIP = 2;
+    PFE = 3;
+}
+
+enum ProjectStatus {
+    PROJECT_STATUS_UNSPECIFIED = 0;
+    PLANNING = 1;
+    ACTIVE = 2;
+    ON_HOLD = 3;
+    COMPLETED = 4;
+    CANCELLED = 5;
+}
+
+enum InnovationLevel {
+    INNOVATION_LEVEL_UNSPECIFIED = 0;
+    LOW = 1;
+    MEDIUM = 2;
+    HIGH = 3;
+}
+
+enum CollaborationType {
+    COLLABORATION_TYPE_UNSPECIFIED = 0;
+    INTERNAL = 1;
+    INDUSTRY_PARTNERSHIP = 2;
+    ACADEMIC_INDUSTRY = 3;
+    GOVERNMENT = 4;
+}
+
+enum MilestoneStatus {
+    MILESTONE_STATUS_UNSPECIFIED = 0;
+    PENDING = 1;
+    IN_PROGRESS = 2;
+    MILESTONE_COMPLETED = 3;
+    OVERDUE = 4;
+}
+
+enum KPICategory {
+    KPI_CATEGORY_UNSPECIFIED = 0;
+    GROWTH = 1;
+    REVENUE = 2;
+    EFFICIENCY = 3;
+    QUALITY = 4;
+    ENGAGEMENT = 5;
+}
+
+// KPI message for project creation
+message CreateKPI {
+    string name = 1;
+    string description = 2;
+    double target_value = 3;
+    string unit = 4;
+    KPICategory category = 5;
+}
+
+// Milestone message for project creation
+message CreateMilestone {
+    string title = 1;
+    string description = 2;
+    string due_date = 3;
+    MilestoneStatus status = 4;
+}
+
+message Project {
+    string id = 1;
+    string title = 2;
+    string description = 3;
+    string domain = 4;
+    string status = 5;
+    string start_date = 6;
+    string end_date = 7;
+    int32 progress_percentage = 8;
+    bool is_public = 9;
+    string owner_id = 10;
+    string created_at = 11;
+    string updated_at = 12;
+    string created_by = 13;
+    string updated_by = 14;
+}
+
+message ProjectMember {
+    string id = 1;
+    string project_id = 2;
+    string user_id = 3;
+    string role = 4;
+    bool is_active = 5;
+    string joined_date = 6;
+    string left_date = 7;
+    bool can_edit_project = 8;
+    bool can_manage_tasks = 9;
+    bool can_view_reports = 10;
+    string created_at = 11;
+    string updated_at = 12;
+}
+
+message ProjectMentor {
+    string id = 1;
+    string project_id = 2;
+    string mentor_id = 3;
+    string mentorship_type = 4;
+    string status = 5;
+    string start_date = 6;
+    string end_date = 7;
+    int32 hours_committed = 8;
+    bool is_active = 9;
+    string assigned_by = 10;
+    string created_at = 11;
+    string updated_at = 12;
+}
+
+// Project CRUD Messages
+message CreateProjectRequest {
+    // Core project information (matching REST API exactly)
+    string user_id = 1;
+    string title = 2;
+    string description = 3;
+    string domain = 4;
+    string status = 5;
+    string start_date = 6;
+    string end_date = 7;
+    int32 progress_percentage = 8;
+    bool is_public = 9;
+}
+
+message CreateProjectResponse {
+    bool success = 1;
+    string message = 2;
+    CompleteProjectResponse data = 3;
+}
+
+message CompleteProjectResponse {
+    string id = 1;
+    string title = 2;
+    string description = 3;
+    string domain = 4;
+    string status = 5;
+    string start_date = 6;
+    string end_date = 7;
+    int32 progress_percentage = 8;
+    bool is_public = 9;
+    string created_at = 10;
+    string updated_at = 11;
+    repeated Milestone milestones = 12;
+    repeated KPI kpis = 13;
+    repeated ProjectMember members = 14;
+    repeated ProjectMentor project_mentors = 15;
+    repeated ProjectDocument documents = 16;
+    repeated ProjectActivity activities = 17;
+    int32 total_milestones = 18;
+    int32 completed_milestones = 19;
+    int32 active_members_count = 20;
+    int32 active_mentors_count = 21;
+    int32 total_documents = 22;
+    int32 total_activities = 23;
+    int32 total_kpis = 24;
+}
+
+message GetProjectRequest {
+    string project_id = 1;
+    string user_id = 2;
+}
+
+message GetProjectResponse {
+    bool success = 1;
+    string message = 2;
+    Project project = 3;
+}
+
+message UpdateProjectRequest {
+    string project_id = 1;
+    string user_id = 2;
+    string title = 3;
+    string description = 4;
+    string domain = 5;
+    string status = 6;
+    string start_date = 7;
+    string end_date = 8;
+    int32 progress_percentage = 9;
+    bool is_public = 10;
+}
+
+message UpdateProjectResponse {
+    bool success = 1;
+    string message = 2;
+    Project project = 3;
+}
+
+message DeleteProjectRequest {
+    string project_id = 1;
+    string user_id = 2;
+}
+
+message DeleteProjectResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message ListProjectsRequest {
+    string user_id = 1;
+    int32 page = 2;
+    int32 page_size = 3;
+    string status = 4;
+    string domain = 5;
+    string search = 6;
+    string order_by = 7;
+}
+
+message ListProjectsResponse {
+    bool success = 1;
+    string message = 2;
+    GetAllProjectsResponseData data = 3;
+}
+
+message GetAllProjectsResponseData {
+    repeated ProjectSummary projects = 1;
+    PaginationInfo pagination = 2;
+}
+
+message ProjectSummary {
+    string id = 1;
+    string title = 2;
+    string domain = 3;
+    string status = 4;
+    string start_date = 5;
+    string end_date = 6;
+    int32 progress_percentage = 7;
+    bool is_public = 8;
+    string owner_id = 9;
+    string created_at = 10;
+    string updated_at = 11;
+}
+
+message PaginationInfo {
+    int32 page = 1;
+    int32 page_size = 2;
+    int32 total_count = 3;
+    int32 total_pages = 4;
+}
+
+// Project Statistics Messages
+message GetProjectStatisticsRequest {
+    string project_id = 1;
+    string user_id = 2;
+}
+
+message GetProjectStatisticsResponse {
+    bool success = 1;
+    string message = 2;
+    ProjectStatistics data = 3;
+}
+
+message ProjectStatistics {
+    ProjectInfo project_info = 1;
+    MilestoneStatistics milestones = 2;
+    ProjectMemberStatistics team = 3;
+    MentorshipStatistics mentors = 4;
+    KPIStatistics kpis = 5;
+    TimelineStatistics timeline = 6;
+    ActivityStatistics activities = 7;
+    DocumentStatistics documents = 8;
+}
+
+message ProjectInfo {
+    string id = 1;
+    string title = 2;
+    string status = 3;
+    int32 progress_percentage = 4;
+    string domain = 5;
+}
+
+message MilestoneStatistics {
+    int32 total_milestones = 1;
+    int32 completed_milestones = 2;
+    int32 overdue_milestones = 3;
+    double completion_rate = 4;
+}
+
+message ProjectMemberStatistics {
+    int32 total_members = 1;
+    int32 active_members = 2;
+    repeated RoleCount role_distribution = 3;
+}
+
+message RoleCount {
+    string role = 1;
+    int32 count = 2;
+}
+
+message MentorshipStatistics {
+    int32 total_mentors = 1;
+    int32 active_mentors = 2;
+    repeated string expertise_areas = 3;
+}
+
+message KPIStatistics {
+    int32 total_kpis = 1;
+    double average_completion = 2;
+    repeated KPIStatus kpi_status = 3;
+}
+
+message KPIStatus {
+    string name = 1;
+    double completion_percentage = 2;
+    string metric_type = 3;
+}
+
+message TimelineStatistics {
+    int32 project_duration_days = 1;
+    double progress_by_time = 2;
+}
+
+message ActivityStatistics {
+    int32 total_activities = 1;
+    repeated ActivityTypeCount activity_breakdown = 2;
+}
+
+message ActivityTypeCount {
+    string activity_type = 1;
+    int32 count = 2;
+}
+
+message DocumentStatistics {
+    int32 total_documents = 1;
+    repeated DocumentTypeCount document_breakdown = 2;
+}
+
+message DocumentTypeCount {
+    string document_type = 1;
+    int32 count = 2;
+}
+
+// Project Member Messages
+message AddMemberToProjectRequest {
+    string project_id = 1;
+    string assignee_id = 2;
+    string user_id = 3;
+    string role = 4;
+    bool can_edit_project = 5;
+    bool can_manage_tasks = 6;
+    bool can_view_reports = 7;
+}
+
+message AddMemberToProjectResponse {
+    bool success = 1;
+    string message = 2;
+    ProjectMember member = 3;
+}
+
+// Project Mentor Messages
+message AddMentorToProjectRequest {
+    string project_id = 1;
+    string assignee_id = 2;
+    string mentor_id = 3;
+    string mentorship_type = 4;
+    string start_date = 5;
+    string end_date = 6;
+    int32 hours_committed = 7;
+}
+
+message AddMentorToProjectResponse {
+    bool success = 1;
+    string message = 2;
+    ProjectMentor project_mentor = 3;
+}
+
+// Mentor Registration Messages
+message RegisterMentorRequest {
+    string user_id = 1;
+    string company = 2;
+    string position = 3;
+    string expertise_area = 4;
+    int32 years_experience = 5;
+    string availability_type = 6;
+    string linkedin_url = 7;
+    string website_url = 8;
+    string phone = 9;
+}
+
+message RegisterMentorResponse {
+    bool success = 1;
+    string message = 2;
+    Mentor mentor = 3;
+}
+
+message Mentor {
+    string id = 1;
+    string user_id = 2;
+    string company = 3;
+    string position = 4;
+    string expertise_area = 5;
+    int32 years_experience = 6;
+    string availability_type = 7;
+    string linkedin_url = 8;
+    string website_url = 9;
+    string phone = 10;
+    bool is_verified = 11;
+    bool is_active = 12;
+    string created_at = 13;
+    string updated_at = 14;
+}
+
+// Supporting entities for complete responses
+message Milestone {
+    string id = 1;
+    string project_id = 2;
+    string title = 3;
+    string description = 4;
+    string due_date = 5;
+    string completed_date = 6;
+    bool is_completed = 7;
+    string status = 8;
+    int32 progress_percentage = 9;
+    string created_at = 10;
+    string updated_at = 11;
+    string created_by = 12;
+}
+
+message KPI {
+    string id = 1;
+    string project_id = 2;
+    string name = 3;
+    string description = 4;
+    string metric_type = 5;
+    string last_updated = 6;
+    double target_value = 7;
+    double current_value = 8;
+    string unit = 9;
+    string created_at = 10;
+    string updated_at = 11;
+    string created_by = 12;
+}
+
+message ProjectDocument {
+    string id = 1;
+    string project_id = 2;
+    string name = 3;
+    string description = 4;
+    string document_type = 5;
+    string file_url = 6;
+    int64 file_size = 7;
+    string mime_type = 8;
+    string version = 9;
+    bool is_active = 10;
+    string created_at = 11;
+    string updated_at = 12;
+    string uploaded_by = 13;
+}
+
+message ProjectActivity {
+    string id = 1;
+    string project_id = 2;
+    string activity_type = 3;
+    string description = 4;
+    string metadata = 5;
+    string user_id = 6;
+    string related_object_id = 7;
+    string related_object_type = 8;
+    string created_at = 9;
+}

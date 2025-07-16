@@ -3,7 +3,7 @@
 -- Created: 2025-07-02
 
 -- Enable UUID extension
--- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Enable case-insensitive text extension
 -- CREATE EXTENSION IF NOT EXISTS "citext";

@@ -240,6 +240,10 @@ func (p *ProjectService) GetProjectByID(projectID string, userID uuid.UUID) (*do
 	}
 	// check the permission:
 	if !project.IsPublic {
+		// 1. check if user is owner first
+		if project.OwnerID == userID {
+			return project, nil
+		}
 		// 2. verify if the user is a member
 		permission, err := p.ProjectMemberService.CheckMemberPermissions(project.ID, userID)
 		if err != nil {
@@ -370,7 +374,7 @@ func (p *ProjectService) GetProjectStatistics(ctx context.Context, projectID uui
 
 	pctx := &domain.PermissionContext{
 		IsAuthenticated: true, // this should be set based on actual authentication logic
-		Owner: project.OwnerID == projectID, // assuming the owner is the user who created
+		Owner: project.OwnerID == userID, // assuming the owner is the user who created
 		IsMember: permissions.IsMember,
 	}
 

@@ -1,63 +1,9 @@
--- Migration: 001_initial_schema
--- Description: Initial database schema for project service
+-- Migration: 001_initial_schema_new  
+-- Description: This migration is now empty as the schema was already created in 000001_create_tables.up.sql
 -- Created: 2025-07-03
+-- Note: This file is kept for migration tracking purposes
 
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- Enable case-insensitive text extension
-CREATE EXTENSION IF NOT EXISTS "citext";
-
--- Create custom types for enums
-CREATE TYPE project_status AS ENUM ('planning', 'active', 'on_hold', 'completed', 'cancelled');
-CREATE TYPE milestone_status AS ENUM ('pending', 'in_progress', 'completed', 'overdue');
-CREATE TYPE metric_type AS ENUM ('percentage', 'count', 'currency', 'hours', 'days');
-CREATE TYPE member_role AS ENUM ('manager', 'lead', 'developer', 'designer', 'analyst', 'tester', 'stakeholder');
-CREATE TYPE expertise_area AS ENUM ('technical', 'business', 'marketing', 'finance', 'product', 'operations', 'legal', 'industry');
-CREATE TYPE availability_type AS ENUM ('full_time', 'part_time', 'consultant', 'volunteer');
-CREATE TYPE mentorship_type AS ENUM ('technical', 'business', 'general', 'specialized');
-CREATE TYPE mentorship_status AS ENUM ('pending', 'active', 'completed', 'cancelled');
-CREATE TYPE document_type AS ENUM ('requirement', 'design', 'technical', 'contract', 'report', 'other');
-CREATE TYPE activity_type AS ENUM ('created', 'updated', 'status_changed', 'member_added', 'member_removed', 'milestone_created', 'milestone_completed', 'document_uploaded', 'kpi_updated');
-
--- Create projects table
-CREATE TABLE projects (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    domain VARCHAR(255) NOT NULL,
-    status project_status NOT NULL DEFAULT 'planning',
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
-    progress_percentage INTEGER NOT NULL DEFAULT 0 CHECK (progress_percentage >= 0 AND progress_percentage <= 100),
-    isPublic BOOLEAN NOT NULL DEFAULT FALSE,
-    owner_id UUID NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    created_by UUID NOT NULL,
-    updated_by UUID,
-    
-    -- Constraints
-    CONSTRAINT projects_date_check CHECK (end_date >= start_date)
-);
-
--- Create mentors table
-CREATE TABLE mentors (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL UNIQUE,
-    company VARCHAR(255),
-    position VARCHAR(255),
-    expertise_area expertise_area NOT NULL,
-    years_experience INTEGER NOT NULL DEFAULT 0 CHECK (years_experience >= 0),
-    availability_type availability_type NOT NULL DEFAULT 'part_time',
-    linkedin_url TEXT,
-    website_url TEXT,
-    phone VARCHAR(20),
-    is_verified BOOLEAN NOT NULL DEFAULT FALSE,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+-- No operations needed - schema already exists
 
 -- Create milestones table
 CREATE TABLE milestones (

@@ -22,10 +22,10 @@ type ProjectMentor struct {
 }
 
 type AddProjectMentorRequest struct {
-	UserID uuid.UUID `json:"assignee_id"`
-	Mentor string `json:"mentor"`
-	Mentorship string `json:"mentorship"`
-	StartDate string `json:"start_date"`
-	EndDate string `json:"end_date"`
-	HoursCommitted int `json:"hours_committed"`
+	UserID         uuid.UUID `json:"assignee_id"`
+	MentorID       uuid.UUID `json:"mentor_id"`
+	MentorshipType string    `json:"mentorship_type"`
+	StartDate      string    `json:"start_date"`
+	EndDate        string    `json:"end_date"`
+	HoursCommitted int       `json:"hours_committed"`
 }
